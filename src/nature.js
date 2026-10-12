@@ -181,7 +181,7 @@ export function scatterTrees(root, heightFn, count, seed, area, opts = {}) {
   const folGeo = conifer ? new THREE.ConeGeometry(1.35, 3.6, 8) : foliageGeo(seed)
   if (conifer) folGeo.translate(0, 3.4, 0); else folGeo.translate(0, 3.1, 0)
   const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, count)
-  const fols = new THREE.InstancedMesh(folGeo, leafMat, count)
+  const fols = new THREE.InstancedMesh(folGeo, leafMat, count * 3)
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), col = new THREE.Color()
   let placed = 0, guard = 0
   while (placed < count && guard++ < count * 40) {
@@ -191,11 +191,21 @@ export function scatterTrees(root, heightFn, count, seed, area, opts = {}) {
     const sc = 0.75 + rnd() * 0.9
     q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rnd() * Math.PI * 2)
     m.compose(new THREE.Vector3(x, y - 0.1, z), q, new THREE.Vector3(sc, sc * (0.9 + rnd() * 0.3), sc))
-    trunks.setMatrixAt(placed, m); fols.setMatrixAt(placed, m)
-    col.setHSL(0.26 + rnd() * 0.05, 0.42, 0.26 + rnd() * 0.1); fols.setColorAt(placed, col)
+    trunks.setMatrixAt(placed, m)
+    // three offset canopy masses per tree: irregular, shadowed, never a neat ball
+    for (let b = 0; b < 3; b++) {
+      const bs = sc * (0.62 + rnd() * 0.55)
+      const bm = new THREE.Matrix4().compose(
+        new THREE.Vector3(x + (rnd() - 0.5) * 1.7 * sc, y + (conifer ? 0 : (b * 0.45 + rnd() * 0.3) * sc), z + (rnd() - 0.5) * 1.7 * sc),
+        q, new THREE.Vector3(bs, bs * (0.75 + rnd() * 0.4), bs))
+      // for conifers keep one centred cone; park the other two underground
+      if (conifer && b > 0) bm.compose(new THREE.Vector3(x, y - 8, z), q, new THREE.Vector3(0.01, 0.01, 0.01))
+      fols.setMatrixAt(placed * 3 + b, bm)
+      col.setHSL(0.27 + rnd() * 0.05, 0.38, 0.16 + rnd() * 0.09); fols.setColorAt(placed * 3 + b, col)
+    }
     placed++
   }
-  trunks.count = fols.count = placed
+  trunks.count = placed; fols.count = placed * 3
   trunks.castShadow = fols.castShadow = true
   root.add(trunks, fols); return { trunks, fols }
 }

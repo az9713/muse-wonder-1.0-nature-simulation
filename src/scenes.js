@@ -14,7 +14,7 @@ function sunLight(color, intensity, pos, shadowSize = 60) {
 }
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z)
 function base(id, title, place, opts) {
-  return { id, title, place, fov: 46, bloom: 0.32, threshold: 0.82, radius: 0.45, exposure: 1.05, drift: 1.1, parallax: 1.4, root: new THREE.Group(), ...opts }
+  return { id, title, place, fov: 46, bloom: 0.32, threshold: 0.82, radius: 0.45, exposure: 1.05, drift: 1.1, parallax: 1.4, focus: 30, aperture: 0.0012, root: new THREE.Group(), ...opts }
 }
 function moveParticles(p, dt, fn) {
   const a = p.geo.attributes.position
@@ -24,7 +24,7 @@ function moveParticles(p, dt, fn) {
 
 /* ---------------- THE RIVER — golden hour valley ---------------- */
 export function createRiver() {
-  const s = base('river', 'The river', 'Low water, late light', { cameraPos: V3(12, 7, 25), cameraTarget: V3(1, 2.0, -16), exposure: 1.12 })
+  const s = base('river', 'The river', 'Low water, late light', { cameraPos: V3(12, 2.6, 24), cameraTarget: V3(1, 2.2, -18), exposure: 1.12, focus: 26, aperture: 0.0016 })
   const sunDir = V3(-0.45, 0.38, -0.8)
   const sky = skyDome({ top: 0x3a6ea8, horizon: 0xf2b879, sunDir, sunColor: 0xffb36b, cloud: 0.32 })
   s.root.add(sky.mesh)
@@ -37,7 +37,7 @@ export function createRiver() {
     return -1.1 + hills + fbm(x * 0.12, z * 0.12, 4) * smoothstep(3, 10, d) * 1.6
   }
   s.root.add(terrain({ heightFn: h, colorFn: biome({ wetBelow: 0.4 }) }))
-  const w = water({ sunDir, y: -0.15, color: 0x1d3d3a, opacity: 0.88 })
+  const w = water({ sunDir, y: -0.15, color: 0x24382e, opacity: 0.88 })
   w.uniforms.uFlow.value.set(0, 1); s.root.add(w.mesh)
   scatterTrees(s.root, h, 260, 11, 190, { reject: (x, z) => Math.abs(x - center(z)) < 5.5 || Math.hypot(x - 12, z - 25) < 11, maxY: 15 })
   scatterRocks(s.root, h, 130, 21, 180, { reject: (x, z) => Math.abs(x - center(z)) < 2.2 || Math.hypot(x - 12, z - 25) < 12 })
@@ -55,12 +55,12 @@ export function createRiver() {
 
 /* ---------------- THE FALLS — cliff, plunge pool, spray ---------------- */
 export function createFalls() {
-  const s = base('falls', 'The falls', 'Cold spray, basalt columns', { cameraPos: V3(7, 4.5, 30), cameraTarget: V3(0, 8, -22), bloom: 0.22 })
+  const s = base('falls', 'The falls', 'Cold spray, basalt columns', { cameraPos: V3(4, 3.0, 11), cameraTarget: V3(0, 8, -16), bloom: 0.22, focus: 19, aperture: 0.0018 })
   const sunDir = V3(0.5, 0.62, -0.6)
   const sky = skyDome({ top: 0x4a7db5, horizon: 0xd9e4e8, sunDir, sunColor: 0xffe3b0, cloud: 0.4 })
   s.root.add(sky.mesh)
   s.root.add(new THREE.HemisphereLight(0xcfe4ff, 0x3d4a3a, 1.05))
-  s.root.add(sunLight(0xfff0d0, 2.4, V3(42, 52, -48)))
+  s.root.add(sunLight(0xfff0d0, 2.4, V3(28, 42, 34)))
   const h = (x, z) => {
     const cliff = smoothstep(-8, -20, -z) // rises behind z=-14
     const back = smoothstep(-14, -26, z) * 17
@@ -83,17 +83,17 @@ export function createFalls() {
       float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
       void main(){
         float streak=noise(vec2(vUv.x*26.0, vUv.y*7.0+uTime*1.7))*0.6+noise(vec2(vUv.x*60.0, vUv.y*14.0+uTime*2.6))*0.4;
-        float body=smoothstep(0.25,0.75,streak+0.25);
+        float body=smoothstep(0.05,0.9,streak*1.15);
         float edge=smoothstep(0.0,0.14,vUv.x)*smoothstep(1.0,0.86,vUv.x);
         float foot=smoothstep(0.22,0.0,vUv.y);
-        vec3 col=mix(vec3(0.62,0.74,0.78),vec3(0.97,1.0,1.0),body+foot*0.6);
-        gl_FragColor=vec4(col,(0.35+0.6*body)*edge*(0.75+foot*0.25));
+        vec3 col=mix(vec3(0.32,0.44,0.50),vec3(0.72,0.80,0.84),body*0.8+foot*0.4);
+        gl_FragColor=vec4(col,(0.22+0.55*body)*edge*(0.7+foot*0.3));
       }`,
   })
-  const fallGeo = new THREE.PlaneGeometry(13, 17.5, 24, 24)
+  const fallGeo = new THREE.PlaneGeometry(9.5, 17.5, 24, 24)
   { const p = fallGeo.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); p.setZ(i, Math.sin((y + 8.75) / 17.5 * Math.PI) * 1.1) } fallGeo.computeVertexNormals() }
   const fall = new THREE.Mesh(fallGeo, fallMat); fall.position.set(0, 9.2, -15.5); s.root.add(fall)
-  scatterTrees(s.root, h, 170, 31, 190, { reject: (x, z) => z < -10 && Math.abs(x) < 12, maxY: 24 })
+  scatterTrees(s.root, h, 170, 31, 190, { reject: (x, z) => (z < -10 && Math.abs(x) < 12) || Math.abs(x) < 13, maxY: 24 })
   scatterRocks(s.root, h, 150, 41, 170, { min: 0.5, max: 3.4 })
   const spray = particles({ count: 900, color: 0xeaf6ff, size: 0.55, opacity: 0.5 })
   const sv = new Float32Array(spray.geo.attributes.position.count * 3), sr = mulberry32(9)
@@ -140,14 +140,14 @@ function auroraCurtain(width, height, hue, seed, y, z, tilt) {
   return { mesh, uniforms }
 }
 export function createAurora() {
-  const s = base('aurora', 'The aurora', 'Frozen lake, solar wind', { cameraPos: V3(0, 3.2, 26), cameraTarget: V3(0, 9, -30), exposure: 1.0, bloom: 0.55, threshold: 0.55 })
+  const s = base('aurora', 'The aurora', 'Frozen lake, solar wind', { cameraPos: V3(0, 1.7, 17), cameraTarget: V3(0, 10, -42), exposure: 1.0, bloom: 0.55, threshold: 0.55, focus: 55, aperture: 0.0007 })
   const moonDir = V3(0.42, 0.52, -0.5)
   const sky = skyDome({ top: 0x060b26, horizon: 0x14304a, sunDir: moonDir, sunColor: 0xaac4ff, night: 1, cloud: 0.12 })
   s.root.add(sky.mesh)
   s.root.add(new THREE.HemisphereLight(0x35507a, 0x1c2733, 0.5))
   const moon = sunLight(0xaac8ff, 0.85, V3(46, 58, -55), 70); s.root.add(moon)
   const snowTex = snowTextures(); snowTex.map.repeat.set(20, 20)
-  const h = (x, z) => fbm(x * 0.035 + 4, z * 0.035, 4) * 5 + Math.pow(smoothstep(18, 60, Math.abs(x)), 1.5) * 7 - smoothstep(9, 2, Math.abs(x)) * 1.4
+  const h = (x, z) => { const b = fbm(x * 0.035 + 4, z * 0.035, 4) * 5 + Math.pow(smoothstep(18, 60, Math.abs(x)), 1.5) * 7; return lerp(b, -0.55, smoothstep(13, 4, Math.abs(x))) }
   const snowMat = new THREE.MeshStandardMaterial({ map: snowTex.map, normalMap: snowTex.normalMap, vertexColors: true, roughness: 0.82 })
   s.root.add(terrain({ heightFn: h, colorFn: biome({ grass: 0xdfe9f5, dry: 0xcdd9e8, rock: 0x8b9bb2, snowAbove: -10 }), material: snowMat }))
   const lake = water({ width: 46, length: 170, sunDir: moonDir, y: 0.05, color: 0x0a1c30, opacity: 0.94 })
@@ -169,7 +169,7 @@ export function createAurora() {
 
 /* ---------------- THE ERUPTION — stratovolcano at dusk ---------------- */
 export function createEruption() {
-  const s = base('eruption', 'The eruption', 'Basalt, ash, living fire', { cameraPos: V3(16, 7, 36), cameraTarget: V3(0, 13, -18), exposure: 1.08, bloom: 0.65, threshold: 0.5 })
+  const s = base('eruption', 'The eruption', 'Basalt, ash, living fire', { cameraPos: V3(20, 19, 38), cameraTarget: V3(0, 13, -18), exposure: 1.08, bloom: 0.65, threshold: 0.5, focus: 58, aperture: 0.0009 })
   const sunDir = V3(-0.6, 0.2, -0.55)
   const sky = skyDome({ top: 0x2c2326, horizon: 0x9a5638, sunDir, sunColor: 0xff8a4a, cloud: 0.62 })
   s.root.add(sky.mesh)
@@ -199,7 +199,7 @@ export function createEruption() {
   s.update = (t, dt) => {
     sky.uniforms.uTime.value = t
     const pulse = 0.75 + 0.25 * Math.sin(t * 1.7) * Math.sin(t * 0.43)
-    lavaMat.emissiveIntensity = 2.1 + pulse * 1.3; glow.intensity = 650 + pulse * 600
+    lavaMat.emissiveIntensity = 3.1 + pulse * 1.6; glow.intensity = 650 + pulse * 600
     moveParticles(embers, dt, (a, i) => { let y = a.getY(i) + dt * (2 + (i % 7) * 0.4); if (y > 40) y = 23; a.setY(i, y); a.setX(i, a.getX(i) + Math.sin(t * 2 + i) * dt * 0.8) })
     moveParticles(ash, dt, (a, i) => { let y = a.getY(i) - dt * 0.9; if (y < 0) y = 34; a.setY(i, y); a.setX(i, a.getX(i) + dt * 1.1) })
   }
@@ -219,7 +219,7 @@ export function lightningFlash(time) {
   return Math.min(flash, 1.35)
 }
 export function createStorm() {
-  const s = base('storm', 'The storm', 'Driving rain, near thunder', { cameraPos: V3(4, 3.6, 27), cameraTarget: V3(0, 4, -20), exposure: 0.92, bloom: 0.3, threshold: 0.7 })
+  const s = base('storm', 'The storm', 'Driving rain, near thunder', { cameraPos: V3(0, 4.6, 25), cameraTarget: V3(0, 3.0, -30), exposure: 0.92, bloom: 0.3, threshold: 0.7, focus: 48, aperture: 0.0008 })
   s.flash = 0
   const sunDir = V3(0.3, 0.5, -0.6)
   const sky = skyDome({ top: 0x232a33, horizon: 0x5a6672, sunDir, sunColor: 0x9fb4c8, cloud: 0.92 })
@@ -229,9 +229,9 @@ export function createStorm() {
   const bolt = new THREE.DirectionalLight(0xcfe0ff, 0); bolt.position.set(-30, 60, -80); s.root.add(bolt)
   const h = (x, z) => fbm(x * 0.04 + 7, z * 0.04, 4) * 4.5 + Math.pow(smoothstep(20, 62, Math.abs(x)), 1.4) * 8 + fbm(x * 0.15, z * 0.15, 3) * 0.8
   s.root.add(terrain({ heightFn: h, colorFn: biome({ grass: 0x46543a, dry: 0x5f5c42, rock: 0x5e6166, wetBelow: 1 }) }))
-  const sea = water({ sunDir, y: 0.32, color: 0x1a2c34, opacity: 0.94 }); sea.mesh.position.z = 6; s.root.add(sea.mesh)
-  scatterTrees(s.root, h, 150, 91, 190, { reject: (x, z) => Math.abs(x) < 7, maxY: 8 })
-  scatterRocks(s.root, h, 120, 95, 180, {})
+  const sea = water({ sunDir, y: 0.32, color: 0x1a2c34, opacity: 0.94 }); sea.mesh.position.z = 6; sea.uniforms.uSunColor.value.set(0xb9c9d6); s.root.add(sea.mesh)
+  scatterTrees(s.root, h, 150, 91, 190, { reject: (x, z) => Math.abs(x) < 20 || z > 2, maxY: 8 })
+  scatterRocks(s.root, h, 120, 95, 180, { reject: (x, z) => Math.abs(x) < 30 })
   const rain = particles({ count: 2600, color: 0xcfe2f2, size: 0.32, opacity: 0.55 })
   { const a = rain.geo.attributes.position, r = mulberry32(17); for (let i = 0; i < a.count; i++) a.setXYZ(i, (r() - 0.5) * 100, r() * 30, (r() - 0.5) * 100) }
   s.root.add(rain.points)

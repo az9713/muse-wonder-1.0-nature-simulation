@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js'
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { initTextures } from './nature.js'
 import { createRiver, createFalls, createAurora, createEruption, createStorm, STORM_PERIOD, STRIKES } from './scenes.js'
@@ -34,6 +35,8 @@ const composer = new EffectComposer(renderer)
 composer.addPass(new RenderPass(scene, camera))
 const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.32, 0.45, 0.82)
 composer.addPass(bloom)
+const bokeh = new BokehPass(scene, camera, { focus: 26, aperture: 0.0016, maxblur: 0.0075 })
+composer.addPass(bokeh)
 // Final photographic grade: gentle lift, saturation, vignette, fine grain.
 const grade = new ShaderPass({
   uniforms: { tDiffuse: { value: null }, uTime: { value: 0 } },
@@ -43,11 +46,11 @@ const grade = new ShaderPass({
     void main(){
       vec4 c=texture2D(tDiffuse,vUv);
       float lum=dot(c.rgb,vec3(0.299,0.587,0.114));
-      c.rgb=mix(vec3(lum),c.rgb,1.07);
+      c.rgb=mix(vec3(lum),c.rgb,0.94);
       c.rgb=c.rgb*1.03+vec3(0.008,0.006,0.002);
       float d=distance(vUv,vec2(0.5,0.46));
       c.rgb*=smoothstep(0.95,0.42,d)*0.32+0.68;
-      c.rgb+=(hash(vUv+fract(uTime*0.13))-0.5)*0.018;
+      c.rgb+=(hash(vUv+fract(uTime*0.13))-0.5)*0.024;
       gl_FragColor=c;
     }`,
 })
@@ -55,8 +58,8 @@ composer.addPass(grade); composer.addPass(new OutputPass())
 
 // Per-scene atmosphere: fog colour/density follows the active scene.
 const ATMOS = {
-  river: [0xd9b98c, 0.0026], falls: [0xc4d4dc, 0.003], aurora: [0x0e2238, 0.0016],
-  eruption: [0x6b4a3a, 0.0042], storm: [0x59636e, 0.005],
+  river: [0xe0c096, 0.0042], falls: [0xc4d4dc, 0.0046], aurora: [0x0e2238, 0.0018],
+  eruption: [0x6b4a3a, 0.0052], storm: [0x59636e, 0.0068],
 }
 let index = qi >= 0 ? qi : 0, active = null, busy = false
 let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0, elapsed = 0, last = performance.now()
@@ -70,6 +73,7 @@ function show(n) {
   active = scenes[n]; index = n; scene.add(active.root)
   camera.fov = active.fov; camera.updateProjectionMatrix()
   bloom.strength = active.bloom; bloom.threshold = active.threshold; bloom.radius = active.radius
+  if (bokeh.uniforms) { bokeh.uniforms['focus'].value = active.focus; bokeh.uniforms['aperture'].value = active.aperture }
   renderer.toneMappingExposure = active.exposure
   const [fc, fd] = ATMOS[active.id]; scene.fog.color.set(fc); scene.fog.density = fd
   titleEl.textContent = active.title; placeEl.textContent = active.place

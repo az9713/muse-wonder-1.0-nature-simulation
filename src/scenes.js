@@ -82,20 +82,31 @@ export function createFalls() {
       float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
       float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
       void main(){
-        float streak=noise(vec2(vUv.x*26.0, vUv.y*7.0+uTime*1.7))*0.6+noise(vec2(vUv.x*60.0, vUv.y*14.0+uTime*2.6))*0.4;
-        float body=smoothstep(0.05,0.9,streak*1.15);
-        float edge=smoothstep(0.0,0.14,vUv.x)*smoothstep(1.0,0.86,vUv.x);
-        float foot=smoothstep(0.22,0.0,vUv.y);
-        vec3 col=mix(vec3(0.32,0.44,0.50),vec3(0.72,0.80,0.84),body*0.8+foot*0.4);
-        gl_FragColor=vec4(col,(0.22+0.55*body)*edge*(0.7+foot*0.3));
+        float lane=smoothstep(0.2,0.8,noise(vec2(floor(vUv.x*9.0)*1.7,3.0)));
+        float fast=noise(vec2(vUv.x*34.0, vUv.y*5.0+uTime*2.3));
+        float fine=noise(vec2(vUv.x*90.0, vUv.y*11.0+uTime*3.8));
+        float streak=fast*0.65+fine*0.35;
+        vec3 col=mix(vec3(0.09,0.16,0.19),vec3(0.36,0.45,0.48),streak);
+        float aer=smoothstep(0.62,0.94,streak)*lane;
+        col=mix(col,vec3(0.78,0.86,0.88),aer*0.55);
+        float foot=smoothstep(0.28,0.0,vUv.y);
+        col=mix(col,vec3(0.82,0.89,0.90),foot*0.5);
+        col=mix(col,vec3(0.85,0.92,0.94),smoothstep(0.92,1.0,vUv.y)*0.4);
+        float edge=smoothstep(0.0,0.18,vUv.x)*smoothstep(1.0,0.82,vUv.x);
+        gl_FragColor=vec4(col,(0.2+0.5*lane*streak+foot*0.35)*edge);
       }`,
   })
   const fallGeo = new THREE.PlaneGeometry(9.5, 17.5, 24, 24)
   { const p = fallGeo.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); p.setZ(i, Math.sin((y + 8.75) / 17.5 * Math.PI) * 1.1) } fallGeo.computeVertexNormals() }
   const fall = new THREE.Mesh(fallGeo, fallMat); fall.position.set(0, 9.2, -15.5); s.root.add(fall)
+  // two thinner side ribbons, broken by rock, so the drop is not one flat sheet
+  for (const [w, x, yy] of [[3.1, -6.4, 8.0], [2.5, 6.1, 7.6]]) {
+    const g = new THREE.PlaneGeometry(w, 15, 12, 20)
+    const m = new THREE.Mesh(g, fallMat); m.position.set(x, yy, -15.1); s.root.add(m)
+  }
   scatterTrees(s.root, h, 170, 31, 190, { reject: (x, z) => (z < -10 && Math.abs(x) < 12) || Math.abs(x) < 13, maxY: 24 })
   scatterRocks(s.root, h, 150, 41, 170, { min: 0.5, max: 3.4 })
-  const spray = particles({ count: 900, color: 0xeaf6ff, size: 0.55, opacity: 0.5 })
+  const spray = particles({ count: 900, color: 0xeaf6ff, size: 0.34, opacity: 0.42 })
   const sv = new Float32Array(spray.geo.attributes.position.count * 3), sr = mulberry32(9)
   const reset = (a, i, randomY) => { a.setXYZ(i, (sr() - 0.5) * 11, randomY ? sr() * 6 : 0.3, -14 + (sr() - 0.5) * 3); sv[i * 3] = (sr() - 0.5) * 1.4; sv[i * 3 + 1] = 2.4 + sr() * 4.2; sv[i * 3 + 2] = 0.6 + sr() * 1.6 }
   { const a = spray.geo.attributes.position; for (let i = 0; i < a.count; i++) reset(a, i, true) }
@@ -125,13 +136,15 @@ function auroraCurtain(width, height, hue, seed, y, z, tilt) {
       float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
       float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
       void main(){
-        float rays=noise(vec2(vUv.x*36.0+uSeed*10.0+uTime*0.22, vUv.x*6.0-uTime*0.05));
-        rays=0.45+0.55*rays;
+        float rays=noise(vec2(vUv.x*64.0+uSeed*10.0+uTime*0.22, vUv.x*6.0-uTime*0.05))*0.65
+                 + noise(vec2(vUv.x*22.0+uSeed*4.0-uTime*0.11, vUv.y*2.0))*0.35;
+        rays=0.4+0.6*rays;
         float curtain=sin(vUv.x*7.0+uSeed+uTime*0.18+noise(vUv*3.0+uSeed)*2.2)*0.5+0.5;
         float vert=pow(1.0-vUv.y,1.7)*smoothstep(0.0,0.24,vUv.y);
         vec3 low=mix(vec3(0.1,0.95,0.42),vec3(0.1,0.7,0.8),uHue);
         vec3 col=mix(low,vec3(0.55,0.25,0.95),pow(vUv.y,1.6)*0.8+uHue*0.2);
-        float a=vert*(0.25+0.75*curtain)*rays*0.75;
+        float hfade=smoothstep(0.0,0.24,vUv.x)*smoothstep(1.0,0.76,vUv.x);
+        float a=vert*(0.25+0.75*curtain)*rays*0.75*hfade;
         gl_FragColor=vec4(col*a*1.7,a);
       }`,
   })
@@ -140,7 +153,7 @@ function auroraCurtain(width, height, hue, seed, y, z, tilt) {
   return { mesh, uniforms }
 }
 export function createAurora() {
-  const s = base('aurora', 'The aurora', 'Frozen lake, solar wind', { cameraPos: V3(0, 1.7, 17), cameraTarget: V3(0, 10, -42), exposure: 1.0, bloom: 0.55, threshold: 0.55, focus: 55, aperture: 0.0007 })
+  const s = base('aurora', 'The aurora', 'Frozen lake, solar wind', { cameraPos: V3(0, 2.3, 17), cameraTarget: V3(0, 5.5, -42), exposure: 1.0, bloom: 0.55, threshold: 0.55, focus: 55, aperture: 0.0007 })
   const moonDir = V3(0.42, 0.52, -0.5)
   const sky = skyDome({ top: 0x060b26, horizon: 0x14304a, sunDir: moonDir, sunColor: 0xaac4ff, night: 1, cloud: 0.12 })
   s.root.add(sky.mesh)
@@ -154,13 +167,28 @@ export function createAurora() {
   lake.uniforms.uSunColor.value.set(0x9fd8ff); s.root.add(lake.mesh)
   scatterTrees(s.root, h, 220, 51, 200, { conifer: true, leaf: 0x2c4a34, reject: (x) => Math.abs(x) < 13, maxY: 9 })
   scatterRocks(s.root, h, 60, 61, 180, { reject: (x) => Math.abs(x) < 10 })
-  const curtains = [auroraCurtain(190, 44, 0, 1.7, 34, -95, 0.22), auroraCurtain(150, 34, 0.45, 4.2, 40, -120, 0.3), auroraCurtain(220, 52, 0.15, 8.9, 30, -70, 0.14)]
+  const curtains = [auroraCurtain(280, 48, 0, 1.7, 36, -95, 0.22), auroraCurtain(240, 38, 0.45, 4.2, 42, -120, 0.3), auroraCurtain(300, 56, 0.15, 8.9, 32, -70, 0.14)]
   curtains.forEach((c) => s.root.add(c.mesh))
-  const snow = particles({ count: 700, color: 0xffffff, size: 0.28, opacity: 0.65 })
+  const reflUniforms = { uTime: { value: 0 } }
+  const refl = new THREE.Mesh(new THREE.PlaneGeometry(44, 78), new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: reflUniforms,
+    vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader: `varying vec2 vUv; uniform float uTime;
+      float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+      float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
+      void main(){
+        float streak=noise(vec2(vUv.x*44.0+uTime*0.15, vUv.x*8.0))*0.65+noise(vec2(vUv.x*14.0-uTime*0.07, 2.0))*0.35;
+        float fade=pow(vUv.y,1.6)*smoothstep(0.0,0.25,vUv.x)*smoothstep(1.0,0.75,vUv.x);
+        vec3 col=mix(vec3(0.08,0.7,0.34),vec3(0.1,0.5,0.65),vUv.y);
+        gl_FragColor=vec4(col*streak*fade*0.5, streak*fade*0.4);
+      }`,
+  }))
+  refl.rotation.x = -Math.PI / 2; refl.position.set(0, 0.14, -18); s.root.add(refl)
+  const snow = particles({ count: 700, color: 0xffffff, size: 0.15, opacity: 0.5 })
   { const a = snow.geo.attributes.position, r = mulberry32(3); for (let i = 0; i < a.count; i++) a.setXYZ(i, (r() - 0.5) * 110, r() * 26, (r() - 0.5) * 110) }
   s.root.add(snow.points)
   s.update = (t, dt, cam) => {
-    sky.uniforms.uTime.value = t; lake.uniforms.uTime.value = t * 0.4; lake.uniforms.uCam.value.copy(cam.position)
+    sky.uniforms.uTime.value = t; lake.uniforms.uTime.value = t * 0.4; lake.uniforms.uCam.value.copy(cam.position); reflUniforms.uTime.value = t
     curtains.forEach((c) => { c.uniforms.uTime.value = t })
     moveParticles(snow, dt, (a, i) => { let y = a.getY(i) - dt * (0.7 + (i % 5) * 0.12); if (y < 0) y = 26; a.setY(i, y); a.setX(i, a.getX(i) + Math.sin(t + i) * dt * 0.4) })
   }
@@ -169,7 +197,7 @@ export function createAurora() {
 
 /* ---------------- THE ERUPTION — stratovolcano at dusk ---------------- */
 export function createEruption() {
-  const s = base('eruption', 'The eruption', 'Basalt, ash, living fire', { cameraPos: V3(20, 19, 38), cameraTarget: V3(0, 13, -18), exposure: 1.08, bloom: 0.65, threshold: 0.5, focus: 58, aperture: 0.0009 })
+  const s = base('eruption', 'The eruption', 'Basalt, ash, living fire', { cameraPos: V3(19, 27, 31), cameraTarget: V3(0, 17, -18), exposure: 1.08, bloom: 0.65, threshold: 0.5, focus: 52, aperture: 0.0009 })
   const sunDir = V3(-0.6, 0.2, -0.55)
   const sky = skyDome({ top: 0x2c2326, horizon: 0x9a5638, sunDir, sunColor: 0xff8a4a, cloud: 0.62 })
   s.root.add(sky.mesh)
@@ -182,12 +210,44 @@ export function createEruption() {
   const mat = new THREE.MeshStandardMaterial({ map: lavaTex.map, normalMap: lavaTex.normalMap, vertexColors: true, roughness: 1 })
   s.root.add(terrain({ heightFn: h, colorFn: biome({ grass: 0x3b332c, dry: 0x55483c, rock: 0x6b5f56 }), material: mat }))
   // crater lake of lava + a glowing flow down the near slope
-  const lavaMat = new THREE.MeshStandardMaterial({ color: 0x1a0c06, emissive: 0xff4d00, emissiveIntensity: 2.6, roughness: 0.6 })
-  const crater = new THREE.Mesh(new THREE.CircleGeometry(4.6, 28), lavaMat)
+const crustUniforms = { uTime: { value: 0 } }
+  const crustMat = new THREE.ShaderMaterial({
+    uniforms: crustUniforms,
+    vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader: `varying vec2 vUv; uniform float uTime;
+      float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+      float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
+      float fbm(vec2 p){ float s=0.,a=.5; for(int i=0;i<4;i++){ s+=a*noise(p); p*=2.1; a*=.5; } return s; }
+      void main(){
+        vec2 p=vUv*vec2(6.0,22.0)+vec2(0.0,-uTime*0.22);
+        float n=fbm(p);
+        float crack=smoothstep(0.09,0.015,abs(n-0.5));
+        float plate=fbm(vUv*vec2(10.0,30.0));
+        vec3 col=mix(vec3(0.03,0.02,0.02),vec3(0.13,0.09,0.07),plate);
+        vec3 hot=mix(vec3(1.0,0.22,0.02),vec3(1.0,0.55,0.08),fbm(p*2.0));
+        col+=hot*crack*(1.6+0.5*sin(uTime*1.3+vUv.y*14.0));
+        col+=vec3(1.0,0.35,0.05)*smoothstep(0.75,1.0,fbm(p*1.4+7.0))*0.35;
+        float edge=smoothstep(0.0,0.16,vUv.x)*smoothstep(1.0,0.84,vUv.x);
+        gl_FragColor=vec4(col,0.92+0.08*edge);
+      }`,
+  })
+  const crater = new THREE.Mesh(new THREE.CircleGeometry(4.6, 28), crustMat)
   crater.rotation.x = -Math.PI / 2; crater.position.set(0, h(0, -18) + 0.35, -18); s.root.add(crater)
   const flowPts = []; for (let i = 0; i <= 20; i++) { const t = i / 20, z = -18 + t * 30, x = Math.sin(t * 5) * 2.2 * t; flowPts.push(new THREE.Vector3(x, h(x, z) + 0.28, z)) }
-  const flow = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(flowPts), 32, 0.85, 7), lavaMat)
-  s.root.add(flow)
+  { // ribbon strip over the slope, narrowing as it cools
+    const posArr = [], uvArr = [], idx = []
+    flowPts.forEach((pt, i) => {
+      const wdt = 1.5 * (1 - i / flowPts.length * 0.45)
+      posArr.push(pt.x - wdt, pt.y, pt.z, pt.x + wdt, pt.y, pt.z)
+      uvArr.push(0, i / (flowPts.length - 1), 1, i / (flowPts.length - 1))
+      if (i > 0) { const a = (i - 1) * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2) }
+    })
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.Float32BufferAttribute(posArr, 3))
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uvArr, 2))
+    g.setIndex(idx); g.computeVertexNormals()
+    s.root.add(new THREE.Mesh(g, crustMat))
+  }
   scatterRocks(s.root, h, 170, 71, 190, { min: 0.4, max: 3 })
   scatterTrees(s.root, h, 90, 81, 200, { conifer: true, leaf: 0x35402c, reject: (x, z) => Math.hypot(x, z + 18) < 30, maxY: 4 })
   const embers = particles({ count: 500, color: 0xffa030, size: 0.4, opacity: 0.9, additive: true })
@@ -199,7 +259,7 @@ export function createEruption() {
   s.update = (t, dt) => {
     sky.uniforms.uTime.value = t
     const pulse = 0.75 + 0.25 * Math.sin(t * 1.7) * Math.sin(t * 0.43)
-    lavaMat.emissiveIntensity = 3.1 + pulse * 1.6; glow.intensity = 650 + pulse * 600
+    crustUniforms.uTime.value = t; glow.intensity = 650 + pulse * 600
     moveParticles(embers, dt, (a, i) => { let y = a.getY(i) + dt * (2 + (i % 7) * 0.4); if (y > 40) y = 23; a.setY(i, y); a.setX(i, a.getX(i) + Math.sin(t * 2 + i) * dt * 0.8) })
     moveParticles(ash, dt, (a, i) => { let y = a.getY(i) - dt * 0.9; if (y < 0) y = 34; a.setY(i, y); a.setX(i, a.getX(i) + dt * 1.1) })
   }
@@ -222,25 +282,31 @@ export function createStorm() {
   const s = base('storm', 'The storm', 'Driving rain, near thunder', { cameraPos: V3(0, 4.6, 25), cameraTarget: V3(0, 3.0, -30), exposure: 0.92, bloom: 0.3, threshold: 0.7, focus: 48, aperture: 0.0008 })
   s.flash = 0
   const sunDir = V3(0.3, 0.5, -0.6)
-  const sky = skyDome({ top: 0x232a33, horizon: 0x5a6672, sunDir, sunColor: 0x9fb4c8, cloud: 0.92 })
+  const sky = skyDome({ top: 0x161d26, horizon: 0x424e5a, sunDir, sunColor: 0x8ea4ba, cloud: 0.96 })
   s.root.add(sky.mesh)
   s.root.add(new THREE.HemisphereLight(0x6a7a8c, 0x2e332a, 0.65))
   const key = sunLight(0xaebfd2, 1.1, V3(26, 44, -52), 80); s.root.add(key)
   const bolt = new THREE.DirectionalLight(0xcfe0ff, 0); bolt.position.set(-30, 60, -80); s.root.add(bolt)
-  const h = (x, z) => fbm(x * 0.04 + 7, z * 0.04, 4) * 4.5 + Math.pow(smoothstep(20, 62, Math.abs(x)), 1.4) * 8 + fbm(x * 0.15, z * 0.15, 3) * 0.8
+  const h = (x, z) => { const b = fbm(x * 0.04 + 7, z * 0.04, 4) * 4.5 + Math.pow(smoothstep(20, 62, Math.abs(x)), 1.4) * 8 + fbm(x * 0.15, z * 0.15, 3) * 0.8; return lerp(b, -0.4, smoothstep(16, 5, Math.abs(x))) }
   s.root.add(terrain({ heightFn: h, colorFn: biome({ grass: 0x46543a, dry: 0x5f5c42, rock: 0x5e6166, wetBelow: 1 }) }))
   const sea = water({ sunDir, y: 0.32, color: 0x1a2c34, opacity: 0.94 }); sea.mesh.position.z = 6; sea.uniforms.uSunColor.value.set(0xb9c9d6); s.root.add(sea.mesh)
   scatterTrees(s.root, h, 150, 91, 190, { reject: (x, z) => Math.abs(x) < 20 || z > 2, maxY: 8 })
   scatterRocks(s.root, h, 120, 95, 180, { reject: (x, z) => Math.abs(x) < 30 })
-  const rain = particles({ count: 2600, color: 0xcfe2f2, size: 0.32, opacity: 0.55 })
-  { const a = rain.geo.attributes.position, r = mulberry32(17); for (let i = 0; i < a.count; i++) a.setXYZ(i, (r() - 0.5) * 100, r() * 30, (r() - 0.5) * 100) }
-  s.root.add(rain.points)
+  const RAIN = 2200, rainPos = new Float32Array(RAIN * 6), rainVel = new Float32Array(RAIN)
+  { const r = mulberry32(17); for (let i = 0; i < RAIN; i++) { const x = (r() - 0.5) * 90, y = r() * 30, z = 5 + (r() - 0.5) * 80; rainPos.set([x, y, z, x + 0.12, y - 0.55, z], i * 6); rainVel[i] = 22 + r() * 10 } }
+  const rainGeo = new THREE.BufferGeometry(); rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3))
+  const rain = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: 0xc8d9e8, transparent: true, opacity: 0.34 }))
+  rain.frustumCulled = false; s.root.add(rain)
+  for (const [w, x, y, z, o] of [[150, -30, 30, -90, 0.42], [120, 40, 26, -75, 0.36], [180, 0, 38, -115, 0.3], [90, -55, 22, -60, 0.34]]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w * 0.32), new THREE.MeshBasicMaterial({ map: TEX.sprite, color: 0x0d1218, transparent: true, opacity: o, depthWrite: false }))
+    m.position.set(x, y, z); s.root.add(m)
+  }
   s.update = (t, dt, cam) => {
     const flash = lightningFlash(t); s.flash = flash
     sky.uniforms.uTime.value = t * 2.2; sky.uniforms.uFlash.value = flash
     bolt.intensity = flash * 5; key.intensity = 1.1 + flash * 1.5
     sea.uniforms.uTime.value = t * 1.6; sea.uniforms.uCam.value.copy(cam.position)
-    moveParticles(rain, dt, (a, i) => { let y = a.getY(i) - dt * 26; let x = a.getX(i) + dt * 7; if (y < 0) { y = 30; x = (Math.sin(i * 91.7) * 0.5) * 100 } a.setY(i, y); a.setX(i, x) })
+    { const a = rainGeo.attributes.position; for (let i = 0; i < RAIN; i++) { let y = a.getY(i * 2) - rainVel[i] * dt, x = a.getX(i * 2) + dt * 6; if (y < 0) { y = 30; x = (Math.sin(i * 91.7) * 0.5) * 110 } a.setXYZ(i * 2, x, y, a.getZ(i * 2)); a.setXYZ(i * 2 + 1, x + 0.12, y - 0.55, a.getZ(i * 2)) } a.needsUpdate = true }
   }
   return s
 }

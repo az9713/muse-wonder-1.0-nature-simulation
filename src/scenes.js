@@ -55,7 +55,7 @@ export function createRiver() {
 
 /* ---------------- THE FALLS — cliff, plunge pool, spray ---------------- */
 export function createFalls() {
-  const s = base('falls', 'The falls', 'Cold spray, basalt columns', { cameraPos: V3(4, 3.0, 11), cameraTarget: V3(0, 8, -16), bloom: 0.22, focus: 19, aperture: 0.0018 })
+  const s = base('falls', 'The falls', 'Cold spray, basalt columns', { cameraPos: V3(2.5, 3.8, 4), cameraTarget: V3(0, 8.5, -15.5), bloom: 0.22, focus: 17, aperture: 0.002 })
   const sunDir = V3(0.5, 0.62, -0.6)
   const sky = skyDome({ top: 0x4a7db5, horizon: 0xd9e4e8, sunDir, sunColor: 0xffe3b0, cloud: 0.4 })
   s.root.add(sky.mesh)
@@ -83,7 +83,7 @@ export function createFalls() {
       float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
       void main(){
         float lane=smoothstep(0.2,0.8,noise(vec2(floor(vUv.x*9.0)*1.7,3.0)));
-        float fast=noise(vec2(vUv.x*34.0, vUv.y*5.0+uTime*2.3));
+        float fast=noise(vec2(vUv.x*30.0, vUv.y*2.2+uTime*1.9));
         float fine=noise(vec2(vUv.x*90.0, vUv.y*11.0+uTime*3.8));
         float streak=fast*0.65+fine*0.35;
         vec3 col=mix(vec3(0.09,0.16,0.19),vec3(0.36,0.45,0.48),streak);
@@ -142,7 +142,7 @@ function auroraCurtain(width, height, hue, seed, y, z, tilt) {
         float curtain=sin(vUv.x*7.0+uSeed+uTime*0.18+noise(vUv*3.0+uSeed)*2.2)*0.5+0.5;
         float vert=pow(1.0-vUv.y,1.7)*smoothstep(0.0,0.24,vUv.y);
         vec3 low=mix(vec3(0.1,0.95,0.42),vec3(0.1,0.7,0.8),uHue);
-        vec3 col=mix(low,vec3(0.55,0.25,0.95),pow(vUv.y,1.6)*0.8+uHue*0.2);
+        vec3 col=mix(low,vec3(0.58,0.28,0.98),min(pow(vUv.y,1.35)+uHue*0.25,1.0));
         float hfade=smoothstep(0.0,0.24,vUv.x)*smoothstep(1.0,0.76,vUv.x);
         float a=vert*(0.25+0.75*curtain)*rays*0.75*hfade;
         gl_FragColor=vec4(col*a*1.7,a);
@@ -153,24 +153,24 @@ function auroraCurtain(width, height, hue, seed, y, z, tilt) {
   return { mesh, uniforms }
 }
 export function createAurora() {
-  const s = base('aurora', 'The aurora', 'Frozen lake, solar wind', { cameraPos: V3(0, 2.3, 17), cameraTarget: V3(0, 5.5, -42), exposure: 1.0, bloom: 0.55, threshold: 0.55, focus: 55, aperture: 0.0007 })
+  const s = base('aurora', 'The aurora', 'Frozen lake, solar wind', { cameraPos: V3(0, 1.9, 20), cameraTarget: V3(0, 7, -45), exposure: 1.0, bloom: 0.55, threshold: 0.55, focus: 55, aperture: 0.0007 })
   const moonDir = V3(0.42, 0.52, -0.5)
   const sky = skyDome({ top: 0x060b26, horizon: 0x14304a, sunDir: moonDir, sunColor: 0xaac4ff, night: 1, cloud: 0.12 })
   s.root.add(sky.mesh)
   s.root.add(new THREE.HemisphereLight(0x35507a, 0x1c2733, 0.5))
   const moon = sunLight(0xaac8ff, 0.85, V3(46, 58, -55), 70); s.root.add(moon)
   const snowTex = snowTextures(); snowTex.map.repeat.set(20, 20)
-  const h = (x, z) => { const b = fbm(x * 0.035 + 4, z * 0.035, 4) * 5 + Math.pow(smoothstep(18, 60, Math.abs(x)), 1.5) * 7; return lerp(b, -0.55, smoothstep(13, 4, Math.abs(x))) }
+  const h = (x, z) => { const b = fbm(x * 0.035 + 4, z * 0.035, 4) * 5 + Math.pow(smoothstep(18, 60, Math.abs(x)), 1.5) * 7; return lerp(b, -0.55, smoothstep(34, 10, Math.abs(x))) }
   const snowMat = new THREE.MeshStandardMaterial({ map: snowTex.map, normalMap: snowTex.normalMap, vertexColors: true, roughness: 0.82 })
   s.root.add(terrain({ heightFn: h, colorFn: biome({ grass: 0xdfe9f5, dry: 0xcdd9e8, rock: 0x8b9bb2, snowAbove: -10 }), material: snowMat }))
-  const lake = water({ width: 46, length: 170, sunDir: moonDir, y: 0.05, color: 0x0a1c30, opacity: 0.94 })
-  lake.uniforms.uSunColor.value.set(0x9fd8ff); s.root.add(lake.mesh)
+  const lake = water({ width: 96, length: 170, sunDir: moonDir, y: 0.05, color: 0x08182a, opacity: 0.94 })
+  lake.uniforms.uSunColor.value.set(0x4d6a86); s.root.add(lake.mesh)
   scatterTrees(s.root, h, 220, 51, 200, { conifer: true, leaf: 0x2c4a34, reject: (x) => Math.abs(x) < 13, maxY: 9 })
   scatterRocks(s.root, h, 60, 61, 180, { reject: (x) => Math.abs(x) < 10 })
-  const curtains = [auroraCurtain(280, 48, 0, 1.7, 36, -95, 0.22), auroraCurtain(240, 38, 0.45, 4.2, 42, -120, 0.3), auroraCurtain(300, 56, 0.15, 8.9, 32, -70, 0.14)]
+  const curtains = [auroraCurtain(300, 62, 0, 1.7, 40, -95, 0.22), auroraCurtain(260, 46, 0.85, 4.2, 46, -120, 0.3), auroraCurtain(320, 68, 0.15, 8.9, 36, -70, 0.14)]
   curtains.forEach((c) => s.root.add(c.mesh))
   const reflUniforms = { uTime: { value: 0 } }
-  const refl = new THREE.Mesh(new THREE.PlaneGeometry(44, 78), new THREE.ShaderMaterial({
+  const refl = new THREE.Mesh(new THREE.PlaneGeometry(92, 84), new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: reflUniforms,
     vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
     fragmentShader: `varying vec2 vUv; uniform float uTime;
@@ -197,7 +197,7 @@ export function createAurora() {
 
 /* ---------------- THE ERUPTION — stratovolcano at dusk ---------------- */
 export function createEruption() {
-  const s = base('eruption', 'The eruption', 'Basalt, ash, living fire', { cameraPos: V3(19, 27, 31), cameraTarget: V3(0, 17, -18), exposure: 1.08, bloom: 0.65, threshold: 0.5, focus: 52, aperture: 0.0009 })
+  const s = base('eruption', 'The eruption', 'Basalt, ash, living fire', { cameraPos: V3(17, 9, 35), cameraTarget: V3(0, 12, -18), exposure: 1.08, bloom: 0.65, threshold: 0.5, focus: 55, aperture: 0.0008 })
   const sunDir = V3(-0.6, 0.2, -0.55)
   const sky = skyDome({ top: 0x2c2326, horizon: 0x9a5638, sunDir, sunColor: 0xff8a4a, cloud: 0.62 })
   s.root.add(sky.mesh)
@@ -212,7 +212,7 @@ export function createEruption() {
   // crater lake of lava + a glowing flow down the near slope
 const crustUniforms = { uTime: { value: 0 } }
   const crustMat = new THREE.ShaderMaterial({
-    uniforms: crustUniforms,
+    uniforms: crustUniforms, side: THREE.DoubleSide,
     vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
     fragmentShader: `varying vec2 vUv; uniform float uTime;
       float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -225,7 +225,7 @@ const crustUniforms = { uTime: { value: 0 } }
         float plate=fbm(vUv*vec2(10.0,30.0));
         vec3 col=mix(vec3(0.03,0.02,0.02),vec3(0.13,0.09,0.07),plate);
         vec3 hot=mix(vec3(1.0,0.22,0.02),vec3(1.0,0.55,0.08),fbm(p*2.0));
-        col+=hot*crack*(1.6+0.5*sin(uTime*1.3+vUv.y*14.0));
+        col+=hot*(0.38+0.85*crack)*(1.9+0.5*sin(uTime*1.3+vUv.y*14.0));
         col+=vec3(1.0,0.35,0.05)*smoothstep(0.75,1.0,fbm(p*1.4+7.0))*0.35;
         float edge=smoothstep(0.0,0.16,vUv.x)*smoothstep(1.0,0.84,vUv.x);
         gl_FragColor=vec4(col,0.92+0.08*edge);
@@ -233,11 +233,11 @@ const crustUniforms = { uTime: { value: 0 } }
   })
   const crater = new THREE.Mesh(new THREE.CircleGeometry(4.6, 28), crustMat)
   crater.rotation.x = -Math.PI / 2; crater.position.set(0, h(0, -18) + 0.35, -18); s.root.add(crater)
-  const flowPts = []; for (let i = 0; i <= 20; i++) { const t = i / 20, z = -18 + t * 30, x = Math.sin(t * 5) * 2.2 * t; flowPts.push(new THREE.Vector3(x, h(x, z) + 0.28, z)) }
+  const flowPts = []; for (let i = 0; i <= 40; i++) { const t = i / 40, z = -18 + t * 30, x = Math.sin(t * 5) * 2.2 * t; flowPts.push(new THREE.Vector3(x, h(x, z) + 0.95, z)) }
   { // ribbon strip over the slope, narrowing as it cools
     const posArr = [], uvArr = [], idx = []
     flowPts.forEach((pt, i) => {
-      const wdt = 1.5 * (1 - i / flowPts.length * 0.45)
+      const wdt = 2.8 * (1 - i / flowPts.length * 0.45)
       posArr.push(pt.x - wdt, pt.y, pt.z, pt.x + wdt, pt.y, pt.z)
       uvArr.push(0, i / (flowPts.length - 1), 1, i / (flowPts.length - 1))
       if (i > 0) { const a = (i - 1) * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2) }
@@ -279,18 +279,19 @@ export function lightningFlash(time) {
   return Math.min(flash, 1.35)
 }
 export function createStorm() {
-  const s = base('storm', 'The storm', 'Driving rain, near thunder', { cameraPos: V3(0, 4.6, 25), cameraTarget: V3(0, 3.0, -30), exposure: 0.92, bloom: 0.3, threshold: 0.7, focus: 48, aperture: 0.0008 })
+  const s = base('storm', 'The storm', 'Driving rain, near thunder', { cameraPos: V3(0, 3.1, 24), cameraTarget: V3(0, 3.6, -40), exposure: 0.92, bloom: 0.3, threshold: 0.7, focus: 48, aperture: 0.0008 })
   s.flash = 0
   const sunDir = V3(0.3, 0.5, -0.6)
   const sky = skyDome({ top: 0x161d26, horizon: 0x424e5a, sunDir, sunColor: 0x8ea4ba, cloud: 0.96 })
+  sky.uniforms.uTop.value.set(0x0a0f16); sky.uniforms.uHorizon.value.set(0x2c3844)
   s.root.add(sky.mesh)
   s.root.add(new THREE.HemisphereLight(0x6a7a8c, 0x2e332a, 0.65))
   const key = sunLight(0xaebfd2, 1.1, V3(26, 44, -52), 80); s.root.add(key)
   const bolt = new THREE.DirectionalLight(0xcfe0ff, 0); bolt.position.set(-30, 60, -80); s.root.add(bolt)
-  const h = (x, z) => { const b = fbm(x * 0.04 + 7, z * 0.04, 4) * 4.5 + Math.pow(smoothstep(20, 62, Math.abs(x)), 1.4) * 8 + fbm(x * 0.15, z * 0.15, 3) * 0.8; return lerp(b, -0.4, smoothstep(16, 5, Math.abs(x))) }
+  const h = (x, z) => { const b = fbm(x * 0.04 + 7, z * 0.04, 4) * 4.5 + Math.pow(smoothstep(20, 62, Math.abs(x)), 1.4) * 8 + fbm(x * 0.15, z * 0.15, 3) * 0.8; return lerp(b, -0.4, smoothstep(44, 14, Math.abs(x))) }
   s.root.add(terrain({ heightFn: h, colorFn: biome({ grass: 0x46543a, dry: 0x5f5c42, rock: 0x5e6166, wetBelow: 1 }) }))
-  const sea = water({ sunDir, y: 0.32, color: 0x1a2c34, opacity: 0.94 }); sea.mesh.position.z = 6; sea.uniforms.uSunColor.value.set(0xb9c9d6); s.root.add(sea.mesh)
-  scatterTrees(s.root, h, 150, 91, 190, { reject: (x, z) => Math.abs(x) < 20 || z > 2, maxY: 8 })
+  const sea = water({ sunDir, y: 0.32, color: 0x111e26, opacity: 0.95 }); sea.mesh.position.z = 6; sea.uniforms.uSunColor.value.set(0x54687c); s.root.add(sea.mesh)
+  scatterTrees(s.root, h, 150, 91, 190, { reject: (x, z) => Math.abs(x) < 40 || z > 2, maxY: 8 })
   scatterRocks(s.root, h, 120, 95, 180, { reject: (x, z) => Math.abs(x) < 30 })
   const RAIN = 2200, rainPos = new Float32Array(RAIN * 6), rainVel = new Float32Array(RAIN)
   { const r = mulberry32(17); for (let i = 0; i < RAIN; i++) { const x = (r() - 0.5) * 90, y = r() * 30, z = 5 + (r() - 0.5) * 80; rainPos.set([x, y, z, x + 0.12, y - 0.55, z], i * 6); rainVel[i] = 22 + r() * 10 } }

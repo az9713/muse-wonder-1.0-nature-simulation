@@ -37,6 +37,13 @@ Click a frame to open that scene. [How it is drawn](https://az9713.github.io/mus
 
 Click **Hear the scene** on the player. Browsers block synthesized audio until that gesture.
 
+## Comparison
+
+Click the frame to open the live comparison with Grok 4.7, scene by scene.
+
+<a href="https://az9713.github.io/muse-wonder-1.0-nature-simulation/comparison.html"><img src="docs/previews/comparison.jpg" alt="Photorealism comparison — Grok 4.7 vs Muse Wonder 1.0" width="840"></a><br>
+<a href="https://az9713.github.io/muse-wonder-1.0-nature-simulation/comparison.html">Which looks more like a photograph?</a>
+
 ## Run it locally
 
 ```bash
@@ -48,4 +55,4 @@ The dev server prints a local URL. Production uses a different base path, `/muse
 
 ## Stack
 
-Three.js and custom GLSL for the picture. The Web Audio API for the sound. Vite builds the two pages, `index.html` and `journey.html`.
+Three.js and custom GLSL for the picture. The Web Audio API for the sound. Vite builds the three pages, `index.html`, `journey.html` and `comparison.html`.

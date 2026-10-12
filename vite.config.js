@@ -14,6 +14,7 @@ export default defineConfig({
       input: {
         main: resolve('index.html'),
         journey: resolve('journey.html'),
+        comparison: resolve('comparison.html'),
       },
     },
   },

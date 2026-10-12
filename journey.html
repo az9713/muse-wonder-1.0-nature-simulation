@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How it is drawn — Phenomena Photoreal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500&family=Barlow+Condensed:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  body { margin:0; background:#101314; color:#ece4d2; font-family:"Barlow Condensed",sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 56px 24px 90px; }
+  h1 { font-family:"Bodoni Moda",serif; font-style:italic; font-weight:500; font-size:44px; margin:0 0 8px; }
+  h2 { font-family:"Bodoni Moda",serif; font-weight:500; font-size:25px; margin:38px 0 8px; }
+  p, li { font-size:18px; line-height:1.55; color:rgba(236,228,210,.82); }
+  a { color:#ece4d2; } code { font-size:.88em; background:rgba(255,255,255,.07); padding:1px 6px; border-radius:4px; }
+  .back { letter-spacing:.1em; font-size:15px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="back"><a href="index.html">&larr; Back to the scenes</a></p>
+  <h1>How it is drawn</h1>
+  <p>Every pixel and every sound in Phenomena is computed. There are no photographs, no texture files, no audio samples — the same discipline as the original, pushed toward photography with real geometry, real light and real shadow.</p>
+
+  <h2>Ground truth: geometry first</h2>
+  <p>Each scene is a true 3D landscape: a 190&times;190-segment heightfield displaced by fractal value noise in JavaScript. Slopes and heights are baked into vertex colours that blend grass, dry earth, wet soil, exposed rock and snow, so the land reads as biomes rather than a painted plane.</p>
+
+  <h2>Surfaces you can feel</h2>
+  <p>Albedo and normal maps for ground, rock and bark are baked on canvases at load — fractal height fields turned into tangent-space normals. Lit by a shadow-casting sun with soft PCF shadows, a boulder at forty metres still shows strata, moss and grit.</p>
+
+  <h2>Light as a camera sees it</h2>
+  <p>The renderer uses ACES filmic tone mapping, exponential height fog per scene, Unreal bloom for lava, aurora and lightning, and a final grade pass — saturation, vignette and fine film grain. Water is a custom shader: two scrolling procedural normal fields, fresnel and a sun glint. The waterfall is a scrolling foam-noise ribbon over a real cliff, with nine hundred spray particles in the plunge pool.</p>
+
+  <h2>Sound from physics, not files</h2>
+  <p>The Web Audio bed is one looping brown-noise source re-filtered per scene: the river burbles through a wandering band-pass with synthesised bird song, the falls add sub-rumble, the aurora is near-silence with high sine shimmer, the eruption breathes at 27&nbsp;Hz with random crackle pops, and the storm schedules thunder by distance — light first, sound at 343&nbsp;m/s.</p>
+
+  <h2>Run it</h2>
+  <p><code>npm install</code> then <code>npm run dev</code>. Arrow keys change scene, 1–5 jump, M toggles sound, and <code>?scene=falls</code> (or river, aurora, eruption, storm) deep-links a scene.</p>
+</main>
+</body>
+</html>

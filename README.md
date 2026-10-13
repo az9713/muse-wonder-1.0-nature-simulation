@@ -51,6 +51,10 @@ Click the frame to open the three-way findings page: Grok 4.7, the first Muse Wo
 <a href="https://az9713.github.io/muse-wonder-1.0-nature-simulation/findings.html"><img src="docs/previews/findings.jpg" alt="Findings — Grok 4.7 vs Muse Wonder 1.0, before and after" width="840"></a><br>
 <a href="https://az9713.github.io/muse-wonder-1.0-nature-simulation/findings.html">Did studying Grok 4.7 improve the first version?</a>
 
+## Photorealism journey
+
+Five further rounds of iteration on the current scenes — findings grounded in the code before each change, kept improvements, documented stops, and every generation's frames: [photorealism-journey.html](https://az9713.github.io/muse-wonder-1.0-nature-simulation/photorealism-journey.html).
+
 ## Run it locally
 
 ```bash
@@ -62,4 +66,4 @@ The dev server prints a local URL. Production uses a different base path, `/muse
 
 ## Stack
 
-Three.js and custom GLSL for the picture. The Web Audio API for the sound. Vite builds the four pages, `index.html`, `journey.html`, `comparison.html` and `findings.html`.
+Three.js and custom GLSL for the picture. The Web Audio API for the sound. Vite builds the five pages, `index.html`, `journey.html`, `comparison.html`, `findings.html` and `photorealism-journey.html`.

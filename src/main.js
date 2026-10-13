@@ -58,8 +58,8 @@ composer.addPass(grade); composer.addPass(new OutputPass())
 
 // Per-scene atmosphere: fog colour/density follows the active scene.
 const ATMOS = {
-  river: [0xe0c096, 0.0042], falls: [0xc4d4dc, 0.0046], aurora: [0x0e2238, 0.0018],
-  eruption: [0x6b4a3a, 0.0052], storm: [0x59636e, 0.0068],
+  river: [0xe0c096, 0.0052], falls: [0xc4d4dc, 0.0046], aurora: [0x0e2238, 0.0018],
+  eruption: [0x6b4a3a, 0.0060], storm: [0x59636e, 0.0088],
 }
 let index = qi >= 0 ? qi : 0, active = null, busy = false
 let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0, elapsed = 0, last = performance.now()

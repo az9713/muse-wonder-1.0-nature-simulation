@@ -16,6 +16,7 @@ export default defineConfig({
         journey: resolve('journey.html'),
         comparison: resolve('comparison.html'),
         findings: resolve('findings.html'),
+        journey2: resolve('photorealism-journey.html'),
       },
     },
   },

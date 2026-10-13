@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Development Journey — Phenomena, from a Grok reference to a five-round photorealism study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500&family=Barlow+Condensed:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; background:#101314; color:#ece4d2; font-family:"Barlow Condensed",sans-serif; }
+  main { max-width:880px; margin:0 auto; padding:52px 22px 80px; }
+  h1 { font-family:"Bodoni Moda",serif; font-style:italic; font-weight:500; font-size:clamp(30px,4.6vw,46px); line-height:1.08; margin:0 0 18px; }
+  h2 { font-family:"Bodoni Moda",serif; font-style:italic; font-weight:500; font-size:29px; margin:46px 0 10px; border-top:1px solid rgba(236,228,210,.14); padding-top:26px; }
+  h3 { font-family:"Bodoni Moda",serif; font-style:italic; font-weight:500; font-size:24px; margin:32px 0 8px; }
+  p, li { font-size:18px; line-height:1.58; color:rgba(236,228,210,.87); }
+  li { margin-bottom:7px; }
+  code { font-size:.84em; background:rgba(255,255,255,.07); padding:1px 6px; border-radius:4px; word-break:break-word; }
+  a { color:#ece4d2; }
+  .scroll { overflow-x:auto; margin:18px 0; }
+  table { width:100%; min-width:640px; border-collapse:collapse; font-size:16px; }
+  th, td { text-align:left; padding:9px 10px; border-bottom:1px solid rgba(236,228,210,.14); vertical-align:top; }
+  thead th { letter-spacing:.08em; text-transform:uppercase; font-weight:500; color:rgba(236,228,210,.6); font-size:14px; }
+  .back { letter-spacing:.1em; font-size:15px; text-transform:uppercase; }
+</style>
+</head>
+<body>
+<main>
+  <p class="back"><a href="index.html">&larr; Back to the scenes</a> &middot; <a href="photorealism-journey.html">Photorealism journey</a> &middot; <a href="findings.html">Findings</a></p>
+<h1>Development Journey — Phenomena, from a Grok reference to a five-round photorealism study</h1>
+<p><strong>Date:</strong> 2026-10-12 to 2026-10-13 <strong>Deliverable:</strong> https://az9713.github.io/muse-wonder-1.0-nature-simulation/ (source: https://github.com/az9713/muse-wonder-1.0-nature-simulation) <strong>Brief:</strong> "Refer to https://github.com/az9713/grok-4.7-nature-simulation" — followed by: "i want you to rebuild the same natural scenes with synthesized sound but much more photorealistic than those created by Grok 4.7. AMIAQ=ask me if any question" <strong>Final render/artifact:</strong> <code>docs/previews/</code> (five scene frames), <code>photorealism-journey.html</code>, <code>generations/gen5-final/</code></p>
+<h2>1. The brief — what was actually being asked</h2>
+<p>The user pointed at someone else's finished piece — az9713/grok-4.7-nature-simulation, five code-drawn natural scenes (river, falls, aurora, eruption, storm) with synthesized sound, built by Grok 4.7 — and asked for the same five scenes, rebuilt to be "much more photorealistic", with AMIAQ (ask me if any question).</p>
+<p>Three ambiguities were resolved by asking, not guessing (structured questions were used repeatedly across the whole project):</p>
+<ul>
+<li>Scope: all five scenes, not a subset.<li>Assets: pure procedural, code-only — no photographs, no sampled audio, in</li>
+ the same spirit as the original.<li>Quality target: cinematic desktop.</li>
+</ul>
+<p>That interpretation governed everything after. The original was never forked as code; it was read as a reference — scene list, page structure, README style, GitHub Pages pattern — and reimplemented. Calling the result "the same scenes" is accurate at the level of subjects and site shape, not code lineage.</p>
+<p>Invisible constraints that shaped the output: the user's standing preference for honest verdicts over flattering ones (they repeatedly asked "which is more photorealistic, explain why" and accepted answers that scored our own work worse), and the rule adopted mid-project that every visual claim must be checked against a captured frame before it is stated.</p>
+<h2>2. Cold start — how the sessions got to a working state</h2>
+<p>This project spans more than one agent session, and the seams matter.</p>
+<p>The first session (Muse Code 1.0.2, model muse-spark-1.3-contributor) died on contact with the environment: its very first shell command failed with <code>sandbox enforcement unavailable: embedded Linux executable image /proc/self/exe cannot be resolved during initialization: No such file or directory (os error 2)</code>, file reads for <code>package.json</code> and <code>README.md</code> returned "No such file or directory", and the agent correctly reported an empty workspace instead of inventing output. That transcript survives in the workspace and was later recovered from the session store (<code>01a13195-3430-7a71-9ad6-ca44d25ee354</code>).</p>
+<p>The main build session ran on Muse Code 1.4.6 / muse-wonder-1.0 in <code>the workspace folder</code>, an empty folder at the start. Node, Vite 6 and Three.js 0.170 were already usable; textures and sound had to be procedural by the brief, so no asset pipeline was needed.</p>
+<p>That session stalled once, hard: a provider failure — <code>model_stream_first_event_timeout</code>, "no model output arrived" over 35m1s — killed it mid-task (an aurora improvement) and a <code>/handoff-after-clear</code> was interrupted. Recovery in the next session did not rely on memory: it read the dead session's own log in Muse's session store (<code>01a13197-326d-78c1-833f-e66572d23578</code>, 89 MB, 10,220 lines), found the exact uncommitted state — a half-finished aurora using Three.js <code>Reflector</code> for a true mirror lake — and continued from there. Rule learned: a prior session's log in the agent's own store is evidence; a summary of it is not.</p>
+<p>At minute zero of the final session (the five rounds, Section 4), the state was: repo pushed at <code>f52b936</code>, a Vite dev server already running on port 5180, a headless Chrome shell binary present under <code>/tmp/browsers/</code> (though not on PATH — <code>command -v chrome-headless-shell</code> returns 127, a probe result that had to be respected and worked around by using the known binary path), and an open user complaint with a screenshot: clicking the findings grid did nothing.</p>
+<p>What was reused instead of re-derived: the Grok repo's README and Pages patterns, the project's own capture tooling pattern (headless Chrome at 1280×708 with <code>--virtual-time-budget=12000</code>), the jpeg-js/pngjs encoder pair kept outside the repo, and every prior verdict — the comparisons were never re-litigated, only extended.</p>
+<h2>3. Design decisions</h2>
+<p><strong>Stack: Three.js 0.170 + custom GLSL + Web Audio API + Vite 6.</strong> Chosen because the reference used it (same stack makes the comparison honest), and because procedural GLSL and canvas-baked textures satisfy the no-assets brief. Rejected: copying the Grok code as a base (the brief was a rebuild, and reuse would have made "more photorealistic" a claim about someone else's shaders); external image/sound assets (against the brief); a game engine (absurd for a browser piece).</p>
+<p><strong>True 3D landscapes instead of the reference's flat shader scenes.</strong> Heightfield terrain (<code>src/nature.js</code> <code>terrain()</code>), instanced rocks and trees, shadow-casting lights, per-scene fog — because "photorealistic" was judged in stills, depth and shadow were the cheapest believable cues. The cost, discovered later, is that real geometry exposes itself (facets, stylised cones) in a way flat gradients never do. That trade drives the whole middle of this document.</p>
+<p><strong>A photographic post chain for every scene:</strong> ACES tone mapping, UnrealBloom, BokehPass depth-of-field, then a final grade ShaderPass (desaturation to 0.94, vignette, film grain) — all in <code>src/main.js</code>. If one mechanism carries the project's look, it is this chain, not any single scene.</p>
+<p><strong>Sound fully synthesized, started only on a user gesture</strong> ("Hear the scene"), because browsers block audio before interaction. Per-scene Web Audio graphs in <code>src/audio.js</code>: filtered noise beds, sub-oscillators for eruption/storm, aurora shimmer, scheduled birdsong on the river, and thunder delayed by scripted lightning distance (<code>STRIKES</code> in <code>src/scenes.js</code>).</p>
+<p><strong>Site shape mirrors the reference exactly:</strong> README with a clickable preview table, <code>docs/previews/</code>, <code>.github/workflows/pages.yml</code>, Vite base path set only under <code>GITHUB_PAGES=true</code>. Pages serves only the build output — a fact that bit twice (see Section 6, items 5 and 7).</p>
+<p><strong>Comparisons published as self-contained HTML pages</strong> (<code>comparison.html</code>, <code>findings.html</code>, <code>photorealism-journey.html</code>) with frames embedded as base64 JPEG, so each page can be opened standalone and its claims checked without the repo. The findings page's fifteen frames later became playable in place (Section 6, item 6).</p>
+<p><strong>What was deliberately not built:</strong> no external assets, no backend, no user accounts, no settings UI, no mobile-specific rendering path (quality target was cinematic desktop, stated in the brief answers). Each absence is a choice from Section 1, not an oversight.</p>
+<h2>4. The photograph problem — the core of this project</h2>
+<p>The project's crux arrived disguised as a compliment. After the first rebuild was published (<code>db73c72</code>), the user asked for a scene-by-scene photorealism comparison against Grok 4.7. The honest answer was <strong>Grok wins 5–0</strong>.</p>
+<p>That verdict, checked frame by frame, is the most valuable artifact in the repo, because it named the actual mechanism of photographic realism in this medium: Grok's frames are simple, but softness, haze, blur and restrained colour hide every synthetic cue, while the rebuild's real terrain, trees and rocks exposed theirs — lollipop trees, hard facets, a giant black foreground boulder on the river, a waterfall rendered as a flat white rectangle. More scene, less photograph. Every later improvement is that sentence applied:</p>
+<ul>
+<li>Cinematic rebuild (<code>08c8915</code>): low, close cameras composed like photographs;</li>
+ clean foregrounds; foliage masses instead of stylised trees; real</li>
+ depth-of-field; muted filmic grade. Took the river. Tally 1–4.<li>Gap-closing round (<code>914738f</code>), then falls/eruption/storm (<code>7ab63df</code>):</li>
+ long-exposure falls close-up, cracked-crust lava, storm seascape with</li>
+ visible streak rain. Tally 4–1, aurora still Grok's.<li>Aurora (<code>554a8e2</code>, recovered from the stalled session): the frozen lake</li>
+ became a true planar mirror (<code>Reflector</code>) under a translucent water layer,</li>
+ curtains gained a violet crown. Tally 5–0 — published with all frames</li>
+ re-shot, each win described as narrow, because they are.</li>
+</ul>
+<p>The same discipline produced the three-way findings page (<code>findings.html</code>, Grok | first Muse build | current Muse build, fifteen fresh frames), built so a human can audit the 5–0 claim in seconds — and, once it was clickable, audit it by <em>playing</em> each version (Section 6, item 6).</p>
+<p>The final session's five rounds then pushed past the comparison, asking of each scene: what is the single least photographic element in this frame, and at which exact code constant does it live? Method per round: capture five frames; write the hypothesis <em>before</em> editing; change the smallest constant; re-capture; keep, adjust, or revert per scene. Results: the falls improved clearly (its spray, long the worst element in any scene, became a mist plume); the river clearly (haze without cotton patches, contained sun); eruption and storm mildly (highlight and rain control); aurora not at all after Round 1 — which is a result, and is documented as one, alongside a reverted river colour change and three documented no-change stops. The full record is Section 4A below and <code>photorealism-journey.html</code>, generated from <code>generations/round-data.json</code>; every generation's frames are under <code>generations/</code>, labelled.</p>
+<h2>4A. The five rounds in full</h2>
+<p>Each round below follows the same contract: findings grounded in exact code constants, written <em>before</em> any edit; the smallest change at those constants; a fresh five-scene capture; and a verdict per scene — including the scenes where the honest verdict was <em>no change</em>. Generation labels name the frame folders under <code>generations/</code> (five JPGs each, 1280×708); the same tables with frames are in <code>photorealism-journey.html</code>. Working notes as written at the time are in <code>generations/round-notes.md</code>; this section is generated from <code>generations/round-data.json</code>.</p>
+<h3>Round 1 — Light &amp; colour: taming blown highlights</h3>
+<p><strong>Generation artifacts:</strong> <code>generations/gen0-baseline/</code> → <code>generations/gen3-true/</code> (labelled in the journey tables as gen0-baseline → gen3-true).</p>
+<p><strong>Findings before any change (grounded in the code):</strong></p>
+<ul>
+<li>River: the sun disc is blown to white (exposure 1.12 in createRiver, src/scenes.js) and water 0x24382e reads teal against the warm sky; valley mist (size 7, opacity 0.05) is too faint to soften the banks.<li>Falls: spray (900 points, size 0.34, opacity 0.42) renders as white polka dots — the least photographic element in any scene; the sheet itself is pale.<li>Aurora: snow (size 0.15, opacity 0.50) sparkles as artifacts over the lake; the translucent lake (opacity 0.34) dilutes the true Reflector mirror; bloom 0.55 halos the curtains.<li>Eruption: lava is blown neon — crust shader multiplier 1.9, bloom 0.65 at threshold 0.50, crater glow up to about 1250 (src/scenes.js createEruption) — and the cone is a featureless silhouette.<li>Storm: rain (opacity 0.34, 0.55-long LineSegments streaks) reads as bright dashes against a flat grey sky (fog density 0.0068 in ATMOS, src/main.js).</li>
+</ul>
+<p><strong>Changes made:</strong></p>
+<ul>
+<li>River: exposure 1.12→1.05 (later 1.00 in Round 4), water 0x24382e→0x33473a, mist opacity 0.05→0.07 as part of the combined first implementation.<li>Falls: spray size 0.34→0.20, opacity 0.42→0.30 (Round 1 step; superseded by the Round 3 mist plume).<li>Aurora: snow size 0.15→0.11, opacity 0.50→0.36; lake opacity 0.34→0.26 so the mirror shows through; bloom 0.55→0.48.<li>Eruption: bloom 0.65→0.48, threshold 0.50→0.55, exposure 1.08→1.02, crust multiplier 1.9→1.45.<li>Storm: rain opacity 0.34→0.26, streak length 0.55→0.75 at both spawn and update sites, fog 0.0068→0.0078.</li>
+</ul>
+<p><strong>Verdict, scene by scene:</strong></p>
+<ul>
+<li>Honest status: the gen1-round1 frames captured in this round were later found to be stale-server re-renders (see the wart section below), so Round 1 has no standalone frame verdict. Its changes are judged cumulatively in the Round 3 true capture.<li>Combined Rounds 1–3 verdict (gen0-baseline → gen3-true): the falls improved clearly, the river mixed, the eruption not yet, the storm mildly, the aurora stable. Full scene verdicts are under Round 3.</li>
+</ul>
+<h3>Round 2 — Surface detail: spray, lanes, rays, crust</h3>
+<p><strong>Generation artifacts:</strong> <code>generations/gen0-baseline/</code> → <code>generations/gen3-true/</code> (labelled in the journey tables as gen0-baseline → gen3-true).</p>
+<p><strong>Findings before any change (grounded in the code):</strong></p>
+<ul>
+<li>Falls: shrinking spray points in Round 1 could not fix the dots, because src/nature.js particles() uses PointsMaterial with a soft sprite — small points stay hard-edged; the lever is size × opacity in the other direction.<li>Falls sheet: lanes are quantised by floor(vUv.x*9.0) in the fall shader, giving nine broad stripes instead of broken ribbons.<li>Aurora: curtain rays use noise at vUv.x*64 — coarse; the Reflector renders at 1024², softening the treeline reflection.<li>Eruption: crust detail is quantised at vUv*vec2(6,22) with plates at vec2(10,30); the point glow (900, then 650+pulse·600) washes it out.<li>Storm: 2200 rain streaks are sparse at 1280×708; the sea colour 0x111e26 is a touch bright against the sky.</li>
+</ul>
+<p><strong>Changes made:</strong></p>
+<ul>
+<li>River: aperture 0.0016→0.0022 for stronger depth-of-field on the foreground trees; water opacity 0.88→0.84.<li>Falls: spray 900→1400 points (interim step toward the Round 3 plume); lanes floor(vUv.x<em>9.0)→</em>13.0; dark-lane base vec3(0.09,0.16,0.19)→vec3(0.06,0.12,0.15).<li>Aurora: rays 64→80; curtain alpha 1.7→1.55; Reflector 1024→2048.<li>Eruption: crust vec2(6,22)→vec2(8,30); plates vec2(10,30)→vec2(14,40); glow 900→700 and 650+pulse·600→500+pulse·400.<li>Storm: rain 2200→2800 streaks; sea 0x111e26→0x0e1a22.</li>
+</ul>
+<p><strong>Verdict, scene by scene:</strong></p>
+<ul>
+<li>Same honest status as Round 1: gen2-round2 frames were stale-server re-renders and are preserved as artifacts of the mistake, not as evidence. The changes above stand or fall in the Round 3 true capture.<li>Lesson recorded at the time and kept: a capture only proves something about the code the server actually served — verify the served module before believing a frame.</li>
+</ul>
+<h3>Round 3 — Atmosphere &amp; depth (and the stale-server wart)</h3>
+<p><strong>Generation artifacts:</strong> <code>generations/gen0-baseline/</code> → <code>generations/gen3-true/</code> (labelled in the journey tables as gen0-baseline → gen3-true).</p>
+<p><strong>Findings before any change (grounded in the code):</strong></p>
+<ul>
+<li>Falls: the spray must become a mist plume — 1800 large (0.90), very faint (0.08) soft sprites — reversing Round 2's failed shrink direction, as the particles() implementation requires.<li>River: fog 0.0042 and mist at opacity 0.07 leave the banks hard; depth needs air, not more objects.<li>Aurora: ATMOS fog is already the lowest of the five (0.0018); more haze would dim the curtains and mirror that carry the scene — a grounded reason to leave it alone this round.<li>Eruption: ash (size 0.5, opacity 0.45) reads as specks; as a larger, fainter veil (0.7 / 0.32) it should read as air.<li>Storm: the scud cloud planes (nearest opacity 0.42) barely register under fog 0.0078; the nearest plane needs 0.52.</li>
+</ul>
+<p><strong>Changes made:</strong></p>
+<ul>
+<li>Falls: spray → 1800 / size 0.90 / opacity 0.08.<li>River: fog 0.0042→0.0052; mist size 7→9, opacity 0.07→0.09 (later corrected in Round 4).<li>Aurora: NO CHANGE this round — documented reasoning above, no edit made.<li>Eruption: fog 0.0052→0.0060; ash size 0.5→0.7, opacity 0.45→0.32.<li>Storm: fog 0.0078→0.0088; nearest scud opacity 0.42→0.52.<li>Process fix (the important change): the dev server was restarted and the served src/scenes.js was grepped for the new constants before the gen3-true capture — the check that now precedes every capture.</li>
+</ul>
+<p><strong>Verdict, scene by scene:</strong></p>
+<ul>
+<li>Falls — IMPROVED, clearly. The plunge-pool spray finally reads as mist; the polka dots are gone. This is the single biggest gain of the five rounds.<li>River — MIXED. Mist at size 9 / opacity 0.09 shows as cotton patches on the banks (corrected in Round 4); water still teal against the warm sky.<li>Aurora — stable by design (no change); mirror and curtains continue to carry the scene.<li>Eruption — NOT improved overall yet. Glow reductions are invisible next to the sky dome's sun (pow(s,900)·18 in skyDome, src/nature.js), which is shared by all scenes.<li>Storm — mildly improved mood; rain still reads as dashes in stills, a LineSegments geometry limit rather than a constant problem.</li>
+</ul>
+<h3>Round 4 — Motion &amp; the stubborn highlights</h3>
+<p><strong>Generation artifacts:</strong> <code>generations/gen3-true/</code> → <code>generations/gen4-round4/</code> (labelled in the journey tables as gen3-true → gen4-round4).</p>
+<p><strong>Findings before any change (grounded in the code):</strong></p>
+<ul>
+<li>River: cotton-patch mist (Round 3 overshoot) — the sprites need to be larger and fainter still: size 12, opacity 0.06; exposure 1.05 still blows the sun, 1.00 is the floor that keeps the glitter.<li>Falls: the crest mixes 0.4 white at vUv.y&gt;0.92 exactly where the sheet rises into the sky, washing the top of the falls; 0.15 keeps the lip without the glare.<li>Aurora: snowfall speed 0.7+(i%5)·0.12 is brisk for a still night; 0.55+(i%5)·0.09 calms the motion. A motion-only change — no still-frame claim is made for it.<li>Eruption: the dome sun can be dimmed per-scene through skyDome's sunColor (0xff8a4a→0xe07a42) without touching the shared shader; bloom 0.48→0.38 trims the remaining halo.<li>Storm: rain opacity 0.26→0.20 is the last constant-level dimming before the dashes become a geometry rewrite.</li>
+</ul>
+<p><strong>Changes made:</strong></p>
+<ul>
+<li>River: mist size 9→12, opacity 0.09→0.06; exposure 1.05→1.00.<li>Falls: crest mix 0.4→0.15 in the fall shader.<li>Aurora: snowfall speed 0.7+(i%5)·0.12 → 0.55+(i%5)·0.09 (motion only).<li>Eruption: bloom 0.48→0.38; dome sun colour 0xff8a4a→0xe07a42.<li>Storm: rain opacity 0.26→0.20.<li>Served code verified (mist size 12, bloom 0.38 grepped from the live module) before the gen4-round4 capture.</li>
+</ul>
+<p><strong>Verdict, scene by scene:</strong></p>
+<ul>
+<li>River — IMPROVED. The cotton patches are gone; the banks are haze, and the sun is contained without losing the glitter path.<li>Falls — kept. Crest wash reduced, mist plume stable; no regression.<li>Aurora — still-equivalent by design (motion-only change); reported as such, not as a visual win.<li>Eruption — MILDLY IMPROVED. The sun disc is smaller and dimmer and the halo is trimmed; the flow stays bright because the flow is the subject.<li>Storm — MILDLY IMPROVED. Dimmer rain reads more like weather; the dash texture remains the known geometry limit.</li>
+</ul>
+<h3>Round 5 — Final polish, and knowing when to stop</h3>
+<p><strong>Generation artifacts:</strong> <code>generations/gen4-round4/</code> → <code>generations/gen5-round5/</code> (labelled in the journey tables as gen4-round4 → gen5-round5).</p>
+<p><strong>Findings before any change (grounded in the code):</strong></p>
+<ul>
+<li>River: the water colour constant (uColor in the water shader, src/nature.js) is dominated by its fresnel and sun-glint terms, so a warmer base (0x33473a→0x3a4a3c) was predicted to be weak — worth one measured attempt, honestly reported either way.<li>Falls: sheet, lanes, crest and mist plume are balanced; the next lever would be crest geometry, which risks the composition that already carries the scene.<li>Aurora: curtains, 2048² mirror, snow and bloom sit at their balance point; every lever from Rounds 1–4 is either active or documented as neutral. Further change would be churn, not improvement.<li>Eruption: highlight headroom remains only at exposure (1.02→0.98) and the crust multiplier (1.45→1.30) without bending the shared skyDome sun term for one scene.<li>Storm: the rain dashes are inherent to LineSegments geometry; the real fix (textured quads) is a rewrite with performance risk for a marginal still-frame gain.</li>
+</ul>
+<p><strong>Changes made:</strong></p>
+<ul>
+<li>River: water 0x33473a→0x3a4a3c attempted, measured, and REVERTED (see verdicts) — final river code is the Gen4 state.<li>Falls: NO CHANGE — documented stop (crest-geometry risk outweighs remaining gain).<li>Aurora: NO CHANGE — documented stop (balance point reached in Rounds 1–4).<li>Eruption: exposure 1.02→0.98; crust multiplier 1.45→1.30.<li>Storm: NO CHANGE — documented stop (LineSegments rewrite out of proportion to the gain).<li>Served code verified (0x3a4a3c and crust 1.30 grepped live) before the gen5-round5 capture; all five scenes re-captured fresh, including the three unchanged ones.</li>
+</ul>
+<p><strong>Verdict, scene by scene:</strong></p>
+<ul>
+<li>River — NO overall improvement from the colour attempt: the Gen5 frame is indistinguishable from Gen4, exactly as the shader reading predicted. Per the goal's rule the change was reverted, so the shipped river is the Gen4 frame (left column of this round's table).<li>Eruption — MILDLY IMPROVED, kept. At exposure 0.98 and crust 1.30 the crust texture reads through the glow instead of drowning in it.<li>Falls, Aurora, Storm — no change, by documented decision. Their Gen5 frames are fresh captures of unchanged code and match Gen4, which is the point: the process stopped where the evidence stopped.<li>End state after five rounds: falls and river clearly better than Gen0, eruption and storm mildly better, aurora held at its best — and no scene made worse. That is where constant-level iteration runs out; the next gains would need new geometry or shaders, a different project, honestly out of scope here.</li>
+</ul>
+<h2>5. Tools and features used</h2>
+<div class="scroll"><table><thead><tr><th>Tool</th><th>What it did in this project</th></tr></thead><tbody></tbody></table></div>
+<p>|---|---|</p>
+<div class="scroll"><table><thead><tr><th>Muse Code (1.0.2 → 1.4.6; muse-spark-1.3 → muse-wonder-1.0)</th><th>All implementation, capture, verification, publishing across sessions</th></tr></thead><tbody><tr><td><code>gh</code> CLI</td><td>Authenticated pushes, Pages deployment watching, live verification (<code>gh run watch</code>)</td></tr><tr><td>Headless Chrome shell (<code>/tmp/browsers/chrome-headless-shell-linux64/</code>)</td><td>Every screenshot in the project: scene frames, page smoke checks, the live-grid playback proof</td></tr><tr><td>Vite 6 (port 5179/5180 dev; Pages build)</td><td>Dev server and production builds for the five pages</td></tr><tr><td>Three.js 0.170 (<code>Reflector</code>, BokehPass, UnrealBloomPass)</td><td>Rendering, the aurora's true mirror, depth-of-field and bloom</td></tr><tr><td>Web Audio API</td><td>Fully synthesized per-scene sound; distance-delayed thunder</td></tr><tr><td>jpeg-js + pngjs (kept outside the repo)</td><td>PNG→JPG conversion for every committed preview frame</td></tr><tr><td>Python 3 + Node scripts in <code>generations/</code></td><td><code>capture.mjs</code> (frames), <code>make-journey.mjs</code> + <code>round-data.json</code> (the journey report)</td></tr><tr><td>Node test (<code>tests/findings-live-grid.test.mjs</code>)</td><td>Durable regression check that all 15 findings frames play live in-cell</td></tr></tbody></table></div>
+<p>Subagents and advisor tools: this work was done inline in the main sessions; no delegated agent produced any part of the deliverable. Structured user-input questions were used at scope forks (Section 1, findings-page choices, and the playable-grid choices) — each answer is a human decision recorded in the transcript, not an agent inference.</p>
+<h2>6. What went wrong, and the fixes</h2>
+<ol>
+<li><strong>Dead first session.</strong> `sandbox enforcement unavailable: … /proc/self/exe</li>
+ cannot be resolved` plus empty-workspace reads. The agent reported the</li>
+ failure instead of fabricating output; the project simply restarted under</li>
+ a fixed environment after <code>muse</code> updated 1.0.2-R2040.1 → 1.4.6-R6000.1.<li><strong>Provider death mid-aurora.</strong> <code>model_stream_first_event_timeout</code> — "the</li>
+ model service did not start responding … (2 failed attempts over 35m1s)".</li>
+ The aurora's <code>Reflector</code> rework sat uncommitted. Fixed by recovering from</li>
+ the session log and finishing it; the commit landed as part of <code>554a8e2</code>.<li><strong>Wrong conclusions from the first river frames.</strong> A huge black foreground</li>
+ boulder and teal water nearly defined the scene's verdict before the frames</li>
+ were re-read side by side; the re-read changed the river text (not the</li>
+ verdict) and directly motivated the cinematic rebuild. Lesson, applied ever</li>
+ since: inspect the actual frame's pixels before writing a sentence about it.<li><strong>Lava flow invisible.</strong> The eruption's glowing river was missing in frame:</li>
+ backface culling on the ribbon (<code>side: THREE.DoubleSide</code> was the fix). It</li>
+ had been "verified" by code reading alone. Lesson: a shader you have not</li>
+ screenshotted does not exist.<li><strong>Captures from the wrong root.</strong> During the findings build, two extra Vite</li>
+ servers started with <code>npx --prefix</code> served the <em>current</em> workspace on all</li>
+ three ports, so the first "three-way" capture set was three copies of one</li>
+ build. Caught only because the frames looked identical; fixed by starting</li>
+ each server from its own root and checking frame hashes. A second version</li>
+ of this trap: the Vite dev server fell back to the current player for</li>
+ <code>/prev/</code>, so the hosted prev build had to be verified from the production</li>
+ <code>dist</code> output — which exposed the real prev (lollipop trees and all).<li><strong>The grid that wasn't live (the user's screenshot).</strong> The findings frames</li>
+ were <code>target="_blank"</code> links; from the user's seat, clicking did nothing</li>
+ useful and the table was not "live". Fix, in two acts: first every frame</li>
+ was made to play its animation (Grok live, current live, and the initial</li>
+ build rebuilt and hosted under <code>public/prev/</code> — 540 KB — because it existed</li>
+ nowhere live); then, after the user's screenshot proved links still weren't</li>
+ the ask, each frame was made to swap a live <code>&lt;iframe&gt;</code> player into its own</li>
+ grid cell on click (label click stops it) — one WebGL context per click, so</li>
+ the browser context limit is never hit. Covered by</li>
+ <code>tests/findings-live-grid.test.mjs</code>, which failed before the fix</li>
+ (<code>AssertionError: findings page never creates an iframe</code>) and passes after.<li><strong>Pages serves only <code>dist</code>.</strong> The journey report's generation frames</li>
+ initially lived only in <code>generations/</code>, which GitHub Pages never serves;</li>
+ the live page would have shipped with broken images. Fixed by mirroring the</li>
+ JPGs to <code>public/generations/</code> (4.1 MB) so the build output carries them.<li><strong>The stale-server rounds (the expensive one).</strong> In the five-round session,</li>
+ the port-5180 dev server served the Gen0 module for three rounds: the Vite</li>
+ watcher on the Windows-mounted workspace filesystem missed the edits,</li>
+ so <code>gen1-round1</code>, <code>gen2-round2</code> and the first <code>gen3-round3</code> captures are</li>
+ re-renders of old code with animation variance. The giveaway was grepping</li>
+ the served module and finding the falls spray still at</li>
+ <code>count: 900, size: 0.34, opacity: 0.42</code> after Round 3 supposedly changed</li>
+ it. Disposition: the frames are kept, labelled as stale-server artifacts</li>
+ (<code>generations/gen1-round1/</code> etc.), the original "kept" verdicts were</li>
+ withdrawn in <code>generations/round-notes.md</code>, the server was restarted, and</li>
+ every later capture was preceded by a served-code grep. Rule learned,</li>
+ verbatim-worthy: grep the served code before believing any frame.<li><strong>Spray fixed in the wrong direction, twice.</strong> The falls' polka-dot spray</li>
+ was attacked by shrinking <code>PointsMaterial</code> points (Rounds 1–2) — which made</li>
+ the dots <em>harder</em>. Only reading <code>particles()</code> in <code>src/nature.js</code> (soft sprite,</li>
+ <code>sizeAttenuation</code>) showed the fix was the opposite: 1800 points at size 0.90</li>
+ and opacity 0.08, blurred by depth-of-field into mist. Wrong twice, then</li>
+ right, for a stated reason each time.<li><strong>A test harness bug that looked like a product bug.</strong> The automated</li>
+</ol>
+<p>    live-grid check first "proved" clicks navigated away — because the     synthetic <code>MouseEvent</code> was dispatched with <code>cancelable</code> unset (false), so     <code>preventDefault()</code> could not apply. Real mouse clicks are cancelable; the     product was fine, the probe was wrong. The corrected probe     (<code>cancelable:true</code>) shows the live cell playing. Lesson: when a check     disagrees with the code's real behaviour, the check is the first suspect.</p>
+<ol>
+<li><strong>Minor and honest.</strong> The bundled <code>chrome-headless-shell</code> runner is absent</li>
+</ol>
+<p>    from PATH (<code>command -v chrome-headless-shell</code> → 127); browser verification     used the known binary path instead of installing anything. One commit     (<code>554a8e2</code> → push) raced <code>gh run list</code>, which returned the <em>previous</em>     deployment as "success"; the correct run (38427780491 for the final push)     was identified and watched explicitly.</p>
+<p>Human-in-the-loop moments, for reproducibility: the initial scope answers (all five scenes, procedural-only, cinematic desktop); "commit and push … use gh cli … exactly the same [style] as the grok repo"; the request to compare honestly; the three-way findings choices (initial build as "prev", fresh captures, new live page); the playable-grid choices (host prev inside the site, open in new tab — later superseded by in-cell play after the user's screenshot); the five-round goal itself; and this document ("yes. then commit and push").</p>
+<h2>7. Verification</h2>
+<p>Nothing in the "it works" column rests on an exit code alone.</p>
+<ul>
+<li><strong>Builds:</strong> <code>npm run build</code> passed after every published change, most</li>
+ recently producing all five pages (<code>index</code>, <code>journey</code>, <code>comparison</code>,</li>
+ <code>findings</code>, <code>photorealism-journey</code>).<li><strong>Frames:</strong> every visual verdict in the comparisons and the five rounds was</li>
+ read from inspected screenshots (1280×708, headless Chrome, swiftshader) —</li>
+ roughly 60 captures across the project. From Round 3 onward each capture was</li>
+ preceded by a grep of the <em>served</em> module for the round's new constants.<li><strong>Live grid:</strong> instrumented DOM check (<code>after:iframes=1 playing=1</code>) plus an</li>
+ inspected screenshot of the Grok river playing inside its findings cell.<li><strong>Durable test:</strong> <code>node tests/findings-live-grid.test.mjs</code> — asserts 15</li>
+ correctly-addressed play links, in-cell iframe creation and the stop toggle;</li>
+ observed failing before the fix and passing after.<li><strong>Deployments:</strong> each push's Pages run was watched to success with <code>gh</code></li>
+ (final run 38427780491, build 26s), followed by HTTP 200 checks on the live</li>
+ pages and their image assets, and content greps on the live HTML.<li><strong>Not verified:</strong> aurora's slower snowfall (Round 4) is a motion change</li>
+ judged from code — stills cannot show it, and the journey says so; real-user</li>
+ GPU performance (all captures are software-rendered); audio, which requires</li>
+ a human click and ears. The findings page's three "current" <em>stills</em> predate</li>
+ the five rounds; the live cells and the journey tables are the current record.</li>
+</ul>
+<p>Costs and limits: no quotas or rate limits were hit at any point. Wall-clock was dominated by screenshot budgets (<code>--virtual-time-budget=12000</code> per frame) and one 35-minute provider outage (item 2). Agent token usage is not metered in this document because no budget was set for the sessions.</p>
+<h2>8. Where things stand</h2>
+<p>Live and current: the player, comparison (5–0), three-way findings with the live grid, and the five-round journey are all published from <code>main</code> at <code>593ba8b</code> plus this document. Working tree: clean except the user's own <code>README.txt</code> and <code>.ignore/</code>, untracked since the first day and never committed by design.</p>
+<p>Knowledge captured durably: the comparisons and round record (<code>comparison.html</code>, <code>findings.html</code>, <code>photorealism-journey.html</code> + <code>generations/round-data.json</code> and <code>round-notes.md</code>), the regression test in <code>tests/</code>, the capture tooling in <code>generations/capture.mjs</code> and <code>make-journey.mjs</code>, and this file. Nothing of substance lives only in a chat transcript anymore.</p>
+<p>Unfinished business, honestly stated: the falls' crest is still geometry, not water (the next fix is shape, and was declined in Round 5 as out of proportion); storm rain is still <code>LineSegments</code> (a textured-quad rewrite was considered and declined on the same grounds); the eruption's sun lives in a shared dome shader and was only ever tamed per-scene; and roughly forty intermediate PNG captures sit untracked in <code>generations/</code> — kept because this project does not delete files, at about 1.3 MB each they were simply never worth committing next to their JPG twins. The deliverable stands without all of these; each is an option, not a promise: (a) commit the PNG masters, (b) rebuild falls crest geometry / storm rain quads as a sixth round, (c) re-shoot the findings page's three current-column stills from Gen5-final.</p>
+<p>One-line summary for a future session: <strong>read the frame, grep the served code, change one constant, and write down why you stopped.</strong></p>
+
+  <p class="back"><a href="index.html">&larr; Back to the scenes</a></p>
+</main>
+</body>
+</html>

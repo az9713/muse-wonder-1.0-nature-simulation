@@ -53,7 +53,7 @@ Click the frame to open the three-way findings page: Grok 4.7, the first Muse Wo
 
 ## Photorealism journey
 
-Five further rounds of iteration on the current scenes — findings grounded in the code before each change, kept improvements, documented stops, and every generation's frames: [photorealism-journey.html](https://az9713.github.io/muse-wonder-1.0-nature-simulation/photorealism-journey.html).
+Five further rounds of iteration on the current scenes — findings grounded in the code before each change, kept improvements, documented stops, and every generation's frames: [photorealism-journey.html](https://az9713.github.io/muse-wonder-1.0-nature-simulation/photorealism-journey.html). The whole project's story, failures included, is in [DEVELOPMENT-JOURNEY.md](DEVELOPMENT-JOURNEY.md).
 
 ## Run it locally
 

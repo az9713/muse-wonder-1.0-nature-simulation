@@ -45,7 +45,7 @@ inventing output. That transcript survives in the workspace and was later
 recovered from the session store (`01a13195-3430-7a71-9ad6-ca44d25ee354`).
 
 The main build session ran on Muse Code 1.4.6 / muse-wonder-1.0 in
-`/mnt/c/users/simon/Downloads/muse_code`, an empty folder at the start. Node,
+`the workspace folder`, an empty folder at the start. Node,
 Vite 6 and Three.js 0.170 were already usable; textures and sound had to be
 procedural by the brief, so no asset pipeline was needed.
 
@@ -224,7 +224,7 @@ transcript, not an agent inference.
    JPGs to `public/generations/` (4.1 MB) so the build output carries them.
 8. **The stale-server rounds (the expensive one).** In the five-round session,
    the port-5180 dev server served the Gen0 module for three rounds: the Vite
-   watcher on the Windows-mounted filesystem (`/mnt/c/...`) missed the edits,
+   watcher on the Windows-mounted workspace filesystem missed the edits,
    so `gen1-round1`, `gen2-round2` and the first `gen3-round3` captures are
    re-renders of old code with animation variance. The giveaway was grepping
    the served module and finding the falls spray still at

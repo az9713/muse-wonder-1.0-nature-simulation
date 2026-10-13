@@ -44,6 +44,13 @@ Click the frame to open the live comparison with Grok 4.7, scene by scene.
 <a href="https://az9713.github.io/muse-wonder-1.0-nature-simulation/comparison.html"><img src="docs/previews/comparison.jpg" alt="Photorealism comparison — Grok 4.7 vs Muse Wonder 1.0" width="840"></a><br>
 <a href="https://az9713.github.io/muse-wonder-1.0-nature-simulation/comparison.html">Which looks more like a photograph?</a>
 
+## Findings
+
+Click the frame to open the three-way findings page: Grok 4.7, the first Muse Wonder 1.0 version, and the current version, scene by scene, with what was learned from Grok and what was changed because of it.
+
+<a href="https://az9713.github.io/muse-wonder-1.0-nature-simulation/findings.html"><img src="docs/previews/findings.jpg" alt="Findings — Grok 4.7 vs Muse Wonder 1.0, before and after" width="840"></a><br>
+<a href="https://az9713.github.io/muse-wonder-1.0-nature-simulation/findings.html">Did studying Grok 4.7 improve the first version?</a>
+
 ## Run it locally
 
 ```bash
@@ -55,4 +62,4 @@ The dev server prints a local URL. Production uses a different base path, `/muse
 
 ## Stack
 
-Three.js and custom GLSL for the picture. The Web Audio API for the sound. Vite builds the three pages, `index.html`, `journey.html` and `comparison.html`.
+Three.js and custom GLSL for the picture. The Web Audio API for the sound. Vite builds the four pages, `index.html`, `journey.html`, `comparison.html` and `findings.html`.

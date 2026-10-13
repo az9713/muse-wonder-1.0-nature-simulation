@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { Reflector } from 'three/addons/objects/Reflector.js'
 import { fbm, ridged, mulberry32, clamp, smoothstep, lerp } from './noise.js'
 import { TEX, terrain, biome, skyDome, water, scatterRocks, scatterTrees, particles } from './nature.js'
 import { lavaRockTextures, snowTextures } from './textures.js'
@@ -140,9 +141,9 @@ function auroraCurtain(width, height, hue, seed, y, z, tilt) {
                  + noise(vec2(vUv.x*22.0+uSeed*4.0-uTime*0.11, vUv.y*2.0))*0.35;
         rays=0.4+0.6*rays;
         float curtain=sin(vUv.x*7.0+uSeed+uTime*0.18+noise(vUv*3.0+uSeed)*2.2)*0.5+0.5;
-        float vert=pow(1.0-vUv.y,1.7)*smoothstep(0.0,0.24,vUv.y);
+        float vert=(pow(1.0-vUv.y,1.35)+smoothstep(0.5,1.0,vUv.y)*0.5)*smoothstep(0.0,0.22,vUv.y);
         vec3 low=mix(vec3(0.1,0.95,0.42),vec3(0.1,0.7,0.8),uHue);
-        vec3 col=mix(low,vec3(0.58,0.28,0.98),min(pow(vUv.y,1.35)+uHue*0.25,1.0));
+        vec3 col=mix(low,vec3(0.62,0.32,1.0),min(pow(vUv.y,1.1)*1.3+uHue*0.3,1.0));
         float hfade=smoothstep(0.0,0.24,vUv.x)*smoothstep(1.0,0.76,vUv.x);
         float a=vert*(0.25+0.75*curtain)*rays*0.75*hfade;
         gl_FragColor=vec4(col*a*1.7,a);
@@ -163,32 +164,19 @@ export function createAurora() {
   const h = (x, z) => { const b = fbm(x * 0.035 + 4, z * 0.035, 4) * 5 + Math.pow(smoothstep(18, 60, Math.abs(x)), 1.5) * 7; return lerp(b, -0.55, smoothstep(34, 10, Math.abs(x))) }
   const snowMat = new THREE.MeshStandardMaterial({ map: snowTex.map, normalMap: snowTex.normalMap, vertexColors: true, roughness: 0.82 })
   s.root.add(terrain({ heightFn: h, colorFn: biome({ grass: 0xdfe9f5, dry: 0xcdd9e8, rock: 0x8b9bb2, snowAbove: -10 }), material: snowMat }))
-  const lake = water({ width: 96, length: 170, sunDir: moonDir, y: 0.05, color: 0x08182a, opacity: 0.94 })
+  const mirror = new Reflector(new THREE.PlaneGeometry(96, 170), { clipBias: 0.003, textureWidth: 1024, textureHeight: 1024, color: 0x6a767e })
+  mirror.rotation.x = -Math.PI / 2; mirror.position.y = 0.02; s.root.add(mirror)
+  const lake = water({ width: 96, length: 170, sunDir: moonDir, y: 0.08, color: 0x08182a, opacity: 0.34 })
   lake.uniforms.uSunColor.value.set(0x4d6a86); s.root.add(lake.mesh)
   scatterTrees(s.root, h, 220, 51, 200, { conifer: true, leaf: 0x2c4a34, reject: (x) => Math.abs(x) < 13, maxY: 9 })
   scatterRocks(s.root, h, 60, 61, 180, { reject: (x) => Math.abs(x) < 10 })
   const curtains = [auroraCurtain(300, 62, 0, 1.7, 40, -95, 0.22), auroraCurtain(260, 46, 0.85, 4.2, 46, -120, 0.3), auroraCurtain(320, 68, 0.15, 8.9, 36, -70, 0.14)]
   curtains.forEach((c) => s.root.add(c.mesh))
-  const reflUniforms = { uTime: { value: 0 } }
-  const refl = new THREE.Mesh(new THREE.PlaneGeometry(92, 84), new THREE.ShaderMaterial({
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: reflUniforms,
-    vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-    fragmentShader: `varying vec2 vUv; uniform float uTime;
-      float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
-      float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f); return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y); }
-      void main(){
-        float streak=noise(vec2(vUv.x*44.0+uTime*0.15, vUv.x*8.0))*0.65+noise(vec2(vUv.x*14.0-uTime*0.07, 2.0))*0.35;
-        float fade=pow(vUv.y,1.6)*smoothstep(0.0,0.25,vUv.x)*smoothstep(1.0,0.75,vUv.x);
-        vec3 col=mix(vec3(0.08,0.7,0.34),vec3(0.1,0.5,0.65),vUv.y);
-        gl_FragColor=vec4(col*streak*fade*0.5, streak*fade*0.4);
-      }`,
-  }))
-  refl.rotation.x = -Math.PI / 2; refl.position.set(0, 0.14, -18); s.root.add(refl)
   const snow = particles({ count: 700, color: 0xffffff, size: 0.15, opacity: 0.5 })
   { const a = snow.geo.attributes.position, r = mulberry32(3); for (let i = 0; i < a.count; i++) a.setXYZ(i, (r() - 0.5) * 110, r() * 26, (r() - 0.5) * 110) }
   s.root.add(snow.points)
   s.update = (t, dt, cam) => {
-    sky.uniforms.uTime.value = t; lake.uniforms.uTime.value = t * 0.4; lake.uniforms.uCam.value.copy(cam.position); reflUniforms.uTime.value = t
+    sky.uniforms.uTime.value = t; lake.uniforms.uTime.value = t * 0.4; lake.uniforms.uCam.value.copy(cam.position)
     curtains.forEach((c) => { c.uniforms.uTime.value = t })
     moveParticles(snow, dt, (a, i) => { let y = a.getY(i) - dt * (0.7 + (i % 5) * 0.12); if (y < 0) y = 26; a.setY(i, y); a.setX(i, a.getX(i) + Math.sin(t + i) * dt * 0.4) })
   }

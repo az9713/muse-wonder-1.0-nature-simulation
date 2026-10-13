@@ -15,6 +15,7 @@ export default defineConfig({
         main: resolve('index.html'),
         journey: resolve('journey.html'),
         comparison: resolve('comparison.html'),
+        findings: resolve('findings.html'),
       },
     },
   },
